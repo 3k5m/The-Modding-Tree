@@ -1,7 +1,7 @@
 let modInfo = {
-	name: "The ??? Tree",
-	id: "mymod",
-	author: "nobody",
+	name: "The Hyperdimensions Tree",
+	id: "3ktree1",
+	author: "3k5m",
 	pointsName: "points",
 	modFiles: ["layers.js", "tree.js"],
 
@@ -13,14 +13,14 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.0",
-	name: "Literally nothing",
+	num: "0.0.1",
+	name: "idk",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
-	<h3>v0.0</h3><br>
-		- Added things.<br>
-		- Added stuff.`
+	<h3>v0.0.1</h3><br>
+		- Added 2 layers.<br>
+		- First attempt at making a TMT mod!`
 
 let winText = `Congratulations! You have reached the end and beaten this game, but for now...`
 
@@ -43,6 +43,8 @@ function getPointGen() {
 		return new Decimal(0)
 
 	let gain = new Decimal(1)
+	if (hasUpgrade('c', 11)) gain = gain.times(2)
+	if (hasUpgrade('c', 12)) gain = gain.times(upgradeEffect('c', 12))
 	return gain
 }
 
@@ -52,6 +54,7 @@ function addedPlayerData() { return {
 
 // Display extra things at the top of the page
 var displayThings = [
+	"Current Endgame: 1 Tesseract"
 ]
 
 // Determines when the game "ends"
