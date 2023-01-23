@@ -1,53 +1,57 @@
-addLayer("c", {
-    name: "cubes", // This is optional, only used in a few places, If absent it just uses the layer id.
-    symbol: "C", // This appears on the layer's node. Default is the id with the first letter capitalized
+addLayer('l', {
+    name: "lines", // This is optional, only used in a few places, If absent it just uses the layer id.
+    symbol: 'L', // This appears on the layer's node. Default is the id with the first letter capitalized
     position: 0, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
     startData() { return {
         unlocked: true,
 		points: new Decimal(0),
     }},
     color: "#FFFFFF",
+    resetDescription: "Draw ",
     requires: new Decimal(10), // Can be a function that takes requirement increases into account
-    resource: "cubes", // Name of prestige currency
+    resource: "lines", // Name of prestige currency
     baseResource: "points", // Name of resource prestige is based on
     baseAmount() {return player.points}, // Get the current amount of baseResource
     type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
     exponent: 0.5, // Prestige currency exponent
     gainMult() { // Calculate the multiplier for main currency from bonuses
         let mult = new Decimal(1)
-        if (hasUpgrade('c', 13)) mult = mult.times(upgradeEffect('c', 13))
-        if (hasUpgrade('c', 14) && !hasUpgrade('c', 21)) mult = mult.times(upgradeEffect('c', 14))
-        if (hasUpgrade('c', 15) && !hasUpgrade('c', 21)) mult = mult.times(upgradeEffect('c', 14)) //squaring the upgrade effect
-        if (hasUpgrade('t', 11)) mult = mult.times(new Decimal(1.5))
-        mult = mult.times(tmp["t"].effect);
+        if (hasUpgrade('l', 13)) mult = mult.times(upgradeEffect('l', 13))
+        if (hasUpgrade('l', 14) && !hasUpgrade('l', 21)) mult = mult.times(upgradeEffect('l', 14))
+        if (hasUpgrade('l', 15) && !hasUpgrade('l', 21)) mult = mult.times(upgradeEffect('l', 14)) //squaring the upgrade effect
+        if (hasUpgrade('s', 11)) mult = mult.times(new Decimal(1.5))
+        mult = mult.times(tmp['s'].effect);
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
         let exp = new Decimal(1)
-        if (hasUpgrade('c', 21)) exp = exp.add(new Decimal(0.1))
-        if (hasUpgrade('t', 12)) exp = exp.add(new Decimal(0.05))
+        if (hasUpgrade('l', 21)) exp = exp.add(new Decimal(0.1))
+        if (hasUpgrade('s', 12)) exp = exp.add(new Decimal(0.05))
         return exp
     },
     row: 0, // Row the layer is in on the tree (0 is the first row)
     hotkeys: [
-        {key: "c", description: "C: Reset for cubes", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
+        {key: 'l', description: "L: Reset for lines", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
     layerShown(){return true},
     doReset(layer) {
+        let has21 = false
+        if (hasUpgrade('l', 21)) has21 = true
         if (layers[layer].row <= layers[this.layer].row) return;
         const keep = []
-        if (hasMilestone("t", 1)) keep.push("upgrades")
+        if (hasMilestone('s', 2)) keep.push("upgrades")
         layerDataReset(this.layer, keep)
+        if (!hasUpgrade('l', 21) && has21) player[this.layer].upgrades.push('l', 21)
     },
     upgrades: {
         11: {
-            title: "Consume",
+            title: "Duplicate",
             description: "Double your point gain.",
             cost: new Decimal(1),
         },
         12: {
-            title: "Sharpen",
-            description: "Increase points gain based on current cubes amount.",
+            title: "Parallel",
+            description: "Increase points gain based on current lines amount.",
             cost: new Decimal(2),
             effect() {
                 return player[this.layer].points.add(1).pow(0.5)
@@ -55,8 +59,8 @@ addLayer("c", {
             effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" }, // Add formatting to the effect
         },
         13: {
-            title: "Reverse",
-            description: "Increase cubes gain based on points.",
+            title: "Sharp",
+            description: "Increase lines gain based on points.",
             cost: new Decimal(4),
             effect() {
                 return player.points.add(1).pow(0.15)
@@ -64,58 +68,67 @@ addLayer("c", {
             effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" }, // Add formatting to the effect
         },
         14: {
-            title: "Build",
-            description: "Increase cubes gain based on current cubes amount.",
+            title: "Curves",
+            description: "Increase lines gain based on current lines amount.",
             cost: new Decimal(10),
             effect() {
-                if(hasUpgrade('c', 15) && !hasUpgrade('c', 21)) { return player[this.layer].points.add(1).pow(0.25).pow(2) }
-                else if(hasUpgrade('c', 21)){ return 1 }
+                if(hasUpgrade('l', 15) && !hasUpgrade('l', 21)) { return player[this.layer].points.add(1).pow(0.25).pow(2) }
+                else if(hasUpgrade('l', 21)){ return 1 }
                 else { return player[this.layer].points.add(1).pow(0.25) }
             },
             effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" }, // Add formatting to the effect
+            unlocked() {
+                return !hasUpgrade('l', 21)
+            }
         },
         15: {
             title: "Inflate",
             description: "Square the previous upgrade effect.",
             cost: new Decimal(25),
+            unlocked() {
+                return !hasUpgrade('l', 21)
+            }
         },
         21: {
-            title: "Explore",
-            description: "Remove the previous two upgrades and resets all resources, but unlocks tesseract features and increases cube gain exponent to by 0.1.",
+            title: "Deflate",
+            description: "Remove the previous two upgrades and resets all resources, but unlocks square features and increases line gain exponent by 0.1<br><br> <b>PERMANENT UPGRADE</b>",
             cost: new Decimal("e14814814"),
             unlocked() {
-                return(player[this.layer].points.gte(new Decimal("e10000")) || hasUpgrade('c', 21))
+                return(player[this.layer].points.gte(new Decimal("e10000")) || hasUpgrade('l', 21))
             },
             onPurchase() {
                 player[this.layer].points = new Decimal(0)
-                player["t"].points = new Decimal(0)
+                player['s'].points = new Decimal(0)
                 player.points = new Decimal(0)
             }
         },
     },
     passiveGeneration(){
-        if(hasMilestone("t",0)) { return 1; }
+        if(hasMilestone('s',1)) { return 1; }
         return 0;
     }
 }),
-addLayer("t", {
-    name: "tesseracts", // This is optional, only used in a few places, If absent it just uses the layer id.
-    symbol: "T", // This appears on the layer's node. Default is the id with the first letter capitalized
+addLayer("s", {
+    name: "squares", // This is optional, only used in a few places, If absent it just uses the layer id.
+    symbol: "S", // This appears on the layer's node. Default is the id with the first letter capitalized
     position: 0, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
     startData() { return {
         unlocked: false,
 		points: new Decimal(0),
     }},
     color: "#FAF2DF",
+    resetDescription: "Combine lines into ",
     requires: new Decimal(100), // Can be a function that takes requirement increases into account
-    resource: "tesseracts", // Name of prestige currency
-    baseResource: "cubes", // Name of resource prestige is based on
-    baseAmount() {return player["c"].points}, // Get the current amount of baseResource
+    resource: "squares", // Name of prestige currency
+    baseResource: "lines", // Name of resource prestige is based on
+    baseAmount() {return player['l'].points}, // Get the current amount of baseResource
     type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
     exponent: 0.5, // Prestige currency exponent
+    //base: 2, only use base if static layer type
     gainMult() { // Calculate the multiplier for main currency from bonuses
         let mult = new Decimal(1)
-        if (hasUpgrade('t', 13)) mult = mult.times(upgradeEffect('t', 13))
+        if (hasUpgrade('s', 13)) mult = mult.times(upgradeEffect('s', 13))
+        mult = mult.times(tmp['c'].effect);
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -123,15 +136,17 @@ addLayer("t", {
     },
     row: 1, // Row the layer is in on the tree (0 is the first row)
     hotkeys: [
-        {key: "t", description: "T: Reset for tesseracts", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
+        {key: 's', description: "T: Reset for squares", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
     layerShown(){return true},
     effect(){
-        if(hasUpgrade("c", 21)) return new Decimal(player[this.layer].points.times(new Decimal(2))).add(1)
+        let eff = new Decimal(player[this.layer].points.pow(new Decimal(1.05))).add(1)
+        if(hasUpgrade('s', 15)) eff = eff.times(new Decimal(2))
+        if(hasUpgrade('l', 21)) return eff
         else return 1
     },
     effectDescription() {
-        if(hasUpgrade("c", 21)) return "which are boosting cube gain by " + format(tmp[this.layer].effect)
+        if(hasUpgrade('l', 21)) return "which are boosting line gain by " + format(tmp[this.layer].effect)
         else return "which aren't boosting any production."
     },
     doReset(layer) {
@@ -139,77 +154,110 @@ addLayer("t", {
         const keep = []
         layerDataReset(this.layer, keep)
     },
+    /*canBuyMax() {
+        if(hasMilestone('s', 0)) return true;
+        else return false;
+    },*/
     milestones: {
-        0: {
-            requirementDescription: "1 Tesseract",
-            effectDescription: "Gain 100% of cube gain every second.",
-            done() { return player[this.layer].points.gte(new Decimal(1)) }
-        },
+        //only use buymax if static layer
+        /*0: {
+            requirementDescription: "1 square",
+            effectDescription: "You can buy max squares.",
+            done() { return player[this.layer].points.gte(new Decimal(1)) || hasMilestone('c', 0) }
+        },*/
         1: {
-            requirementDescription: "100 Tesseracts",
-            effectDescription: "Keep cube upgrades on reset.",
-            done() { return player[this.layer].points.gte(new Decimal(100)) },
+            requirementDescription: "1 Square",
+            effectDescription: "Gain 100% of line gain every second.",
+            done() { return player[this.layer].points.gte(new Decimal(1)) || hasMilestone('c', 0) }
         },
         2: {
-            requirementDescription: "10,000 Tesseracts",
-            effectDescription: "Unlock a buyable.",
-            done() { return player[this.layer].points.gte(new Decimal(10000)) },
+            requirementDescription: "100 Squares",
+            effectDescription: "Keep line upgrades on reset.",
+            done() { 
+                if(hasUpgrade('l', 21)) {
+                    return player[this.layer].points.gte(new Decimal(100))
+                } else {
+                    return false
+                }
+            },
             unlocked(){
-                return hasUpgrade("c", 21)
+                return hasUpgrade('l', 21)
             }
         },
         3: {
-            requirementDescription: "1,000,000 Tesseracts",
+            requirementDescription: "10,000 Squares",
+            effectDescription: "Unlock a buyable.",
+            done() { 
+                if(hasUpgrade('l', 21)) {
+                    return player[this.layer].points.gte(new Decimal(10000))
+                } else {
+                    return false
+                }
+            },
+            unlocked(){
+                return hasUpgrade('l', 21)
+            }
+        },
+        4: {
+            requirementDescription: "1,000,000 Squares",
             effectDescription: "Unlocks a new reset layer.",
             done() { 
-                if(hasUpgrade("c", 21)) {
+                if(hasUpgrade('l', 21)) {
                     return player[this.layer].points.gte(new Decimal(1000000))
                 } else {
                     return false
                 }
             },
             unlocked(){
-                return hasUpgrade("c", 21)
+                return hasUpgrade('l', 21)
             }
         },
     },
     upgrades: {
         11: {
             title: "Condense",
-            description: "Increase cube gain by 1.5 times.",
+            description: "Increase line gain by 1.5 times.",
             cost: new Decimal(3),
             unlocked(){
-                return hasUpgrade("c", 21)
+                return hasUpgrade('l', 21)
             }
         },
         12: {
             title: "Knowledge",
-            description: "Increase cube gain exponent by 0.05.",
+            description: "Increase line gain exponent by 0.05.",
             cost: new Decimal(15),
             unlocked(){
-                return hasUpgrade("c", 21)
+                return hasUpgrade('l', 21)
             }
         },
         13: {
             title: "Expand",
-            description: "Increase tesseract gain by current tesseract amount.",
+            description: "Increase square gain by current square amount.",
             cost: new Decimal(30),
             effect() {
                 let eff = new Decimal(0.1)
-                if(hasUpgrade("t", 14)) { eff = eff.add(new Decimal(0.05)) }
+                if(hasUpgrade('s', 14)) { eff = eff.add(new Decimal(0.05)) }
                 return player[this.layer].points.add(1).pow(eff)
             },
             effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" }, // Add formatting to the effect
             unlocked(){
-                return hasUpgrade("c", 21)
+                return hasUpgrade('l', 21)
             }
         },
         14: {
             title: "Inflate (again)",
-            description: "Increase previous upgrade effect by 0.05.",
+            description: "Increase previous upgrade effect exponent by 0.05.",
             cost: new Decimal(150),
             unlocked(){
-                return hasUpgrade("c", 21)
+                return hasUpgrade('l', 21)
+            }
+        },
+        15: {
+            title: "Double",
+            description: "Increase Square base by 1.",
+            cost: new Decimal(300),
+            unlocked(){
+                return hasUpgrade('l', 21)
             }
         },
     },
@@ -233,26 +281,28 @@ addLayer("t", {
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
             unlocked() {
-                return hasMilestone("t", 2)
+                return hasMilestone('s', 3)
             }
         },
     }
 }),
-addLayer("p", {
-    name: "penteracts", // This is optional, only used in a few places, If absent it just uses the layer id.
-    symbol: "P", // This appears on the layer's node. Default is the id with the first letter capitalized
+addLayer("c", {
+    name: "cubes", // This is optional, only used in a few places, If absent it just uses the layer id.
+    symbol: "C", // This appears on the layer's node. Default is the id with the first letter capitalized
     position: 0, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
     startData() { return {
         unlocked: false,
 		points: new Decimal(0),
     }},
     color: "#FAE7B9",
+    resetDescription: "Combine squares into ",
     requires: new Decimal(1000000), // Can be a function that takes requirement increases into account
-    resource: "penteracts", // Name of prestige currency
-    baseResource: "tesseracts", // Name of resource prestige is based on
-    baseAmount() {return player["t"].points}, // Get the current amount of baseResource
-    type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
+    resource: "cubes", // Name of prestige currency
+    baseResource: "squares", // Name of resource prestige is based on
+    baseAmount() {return player['s'].points}, // Get the current amount of baseResource
+    type: "static", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
     exponent: 0.5, // Prestige currency exponent
+    base: 3,
     gainMult() { // Calculate the multiplier for main currency from bonuses
         let mult = new Decimal(1)
         return mult
@@ -262,23 +312,23 @@ addLayer("p", {
     },
     row: 2, // Row the layer is in on the tree (0 is the first row)
     hotkeys: [
-        {key: "p", description: "P: Reset for penteracts", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
+        {key: "c", description: "C: Reset for cubes", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
-    layerShown(){return hasMilestone("t", 3) || hasMilestone("p", 0)},
+    layerShown(){return hasMilestone('s', 4) || hasMilestone('c', 0)},
     effect(){
         return new Decimal(player[this.layer].points.pow(1.2).add(1))
     },
     effectDescription() {
-        return "which are boosting tesseract gain by " + format(tmp[this.layer].effect)
+        return "which are boosting square gain by " + format(tmp[this.layer].effect)
     },
-    doReset() {
-        layerDataReset("t")
+    canBuyMax() {
+        return false;
     },
     milestones: {
         0: {
-            requirementDescription: "10 Penteracts",
-            effectDescription: "Work In Progress",
-            done() { return player[this.layer].points.gte(new Decimal(10)) }
+            requirementDescription: "1 Cubes",
+            effectDescription: "Unlocks a minigame. Also keep a Square milestone per Cube milestone on reset. (WORK IN PROGRESS)",
+            done() { return player[this.layer].points.gte(new Decimal(1)) }
         },
     }
 })
