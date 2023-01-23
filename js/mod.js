@@ -13,14 +13,19 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.0.1",
-	name: "idk",
+	num: "0.0.2",
+	name: "The Hypercube Tree",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
 	<h3>v0.0.1</h3><br>
 		- Added 2 layers.<br>
-		- First attempt at making a TMT mod!`
+		- First attempt at making a TMT mod!<br>
+		<br>
+	<h3>v0.0.2</h3><br>
+		- Added a new layer<br>
+		- Added some more stuff to tesseract layer<br>
+	`
 
 let winText = `Congratulations! You have reached the end and beaten this game, but for now...`
 
@@ -45,6 +50,7 @@ function getPointGen() {
 	let gain = new Decimal(1)
 	if (hasUpgrade('c', 11)) gain = gain.times(2)
 	if (hasUpgrade('c', 12)) gain = gain.times(upgradeEffect('c', 12))
+	if (getBuyableAmount('t', 11).gte(new Decimal(1))) gain = gain.times(buyableEffect('t', 11))
 	return gain
 }
 
@@ -54,12 +60,12 @@ function addedPlayerData() { return {
 
 // Display extra things at the top of the page
 var displayThings = [
-	"Current Endgame: 1 Tesseract"
+	"Current Endgame: 1 Penteract"
 ]
 
 // Determines when the game "ends"
 function isEndgame() {
-	return player.points.gte(new Decimal("e280000000"))
+	return false //player.points.gte(new Decimal("e280000000"))
 }
 
 
