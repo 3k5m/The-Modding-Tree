@@ -94,7 +94,7 @@ addLayer('l', {
             description: "Remove the previous two upgrades and resets all resources, but unlocks square features and increases line gain exponent by 0.1<br><br> <b>PERMANENT UPGRADE</b>",
             cost: new Decimal("e14814814"),
             unlocked() {
-                return(player[this.layer].points.gte(new Decimal("e10000")) || hasUpgrade('l', 21))
+                return((player[this.layer].points.gte(new Decimal("e10000")) && hasMilestone('s', 1)) || hasUpgrade('l', 21))
             },
             onPurchase() {
                 player[this.layer].points = new Decimal(0)
@@ -147,12 +147,19 @@ addLayer("s", {
     },
     effectDescription() {
         if(hasUpgrade('l', 21)) return "which are boosting line gain by " + format(tmp[this.layer].effect)
-        else return "which aren't boosting any production."
+        else return "which aren't boosting any production. <br><small> You might need another upgrade to progress. </small>"
     },
     doReset(layer) {
         if (layers[layer].row <= layers[this.layer].row) return;
         const keep = []
         layerDataReset(this.layer, keep)
+        for(let loopi=0;loopi<5;loopi++){
+            if(hasMilestone('c', loopi)){
+                //its i+1 because unused 0th milestone
+                player[this.layer].milestones.push('s', loopi+1)
+                console.log("debug loopi" + loopi)
+            }
+        }
     },
     /*canBuyMax() {
         if(hasMilestone('s', 0)) return true;
@@ -168,7 +175,7 @@ addLayer("s", {
         1: {
             requirementDescription: "1 Square",
             effectDescription: "Gain 100% of line gain every second.",
-            done() { return player[this.layer].points.gte(new Decimal(1)) || hasMilestone('c', 0) }
+            done() { return player[this.layer].points.gte(new Decimal(1)) }
         },
         2: {
             requirementDescription: "100 Squares",
