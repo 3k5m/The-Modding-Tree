@@ -26,6 +26,7 @@ addLayer('l', {
     gainExp() { // Calculate the exponent on main currency from bonuses
         let exp = new Decimal(1)
         if (hasUpgrade('l', 21)) exp = exp.add(new Decimal(0.1))
+        if (hasUpgrade('l', 22)) exp = exp.add(new Decimal(0.1))
         if (hasUpgrade('s', 12)) exp = exp.add(new Decimal(0.05))
         return exp
     },
@@ -37,11 +38,13 @@ addLayer('l', {
     doReset(layer) {
         let has21 = false
         if (hasUpgrade('l', 21)) has21 = true
+        if (hasUpgrade('l', 22)) has22 = true
         if (layers[layer].row <= layers[this.layer].row) return;
         const keep = []
         if (hasMilestone('s', 2)) keep.push("upgrades")
         layerDataReset(this.layer, keep)
         if (!hasUpgrade('l', 21) && has21) player[this.layer].upgrades.push('l', 21)
+        if (!hasUpgrade('l', 22) && has22) player[this.layer].upgrades.push('l', 22)
     },
     upgrades: {
         11: {
@@ -91,7 +94,7 @@ addLayer('l', {
         },
         21: {
             title: "Deflate",
-            description: "Remove the previous two upgrades and resets all resources, but unlocks square features and increases line gain exponent by 0.1<br><br> <b>PERMANENT UPGRADE</b>",
+            description: "Remove Line inflate upgrades and resets all resources, but unlocks square features and increases line gain exponent by 0.1<br><br> <b>PERMANENT UPGRADE</b>",
             cost: new Decimal("e14814814"),
             unlocked() {
                 return((player[this.layer].points.gte(new Decimal("e10000")) && hasMilestone('s', 1)) || hasUpgrade('l', 21))
@@ -100,6 +103,21 @@ addLayer('l', {
                 player[this.layer].points = new Decimal(0)
                 player['s'].points = new Decimal(0)
                 player.points = new Decimal(0)
+            }
+        },
+        22: {
+            title: "Deflate 2",
+            description: "Remove Square inflate upgrade, nerf square and generators, and resets all resources, but unlocks square and cube features and increases line gain exponent by 0.1<br><br> <b>PERMANENT UPGRADE</b>",
+            cost: new Decimal("e20"),
+            unlocked() {
+                return((player['c'].points.gte(new Decimal("1"))) || hasUpgrade('l', 22))
+            },
+            onPurchase() {
+                player[this.layer].points = new Decimal(0)
+                player['s'].points = new Decimal(0)
+                player['c'].points = new Decimal(0)
+                player.points = new Decimal(0)
+                setBuyableAmount('s', 11, new Decimal(0))
             }
         },
     },
@@ -142,6 +160,7 @@ addLayer("s", {
     effect(){
         let eff = new Decimal(player[this.layer].points.pow(new Decimal(1.05))).add(1)
         if(hasUpgrade('s', 15)) eff = eff.times(new Decimal(2))
+        if(hasUpgrade('l', 22)) eff = eff.sqrt()
         if(hasUpgrade('l', 21)) return eff
         else return 1
     },
@@ -153,11 +172,14 @@ addLayer("s", {
         if (layers[layer].row <= layers[this.layer].row) return;
         const keep = []
         layerDataReset(this.layer, keep)
+        
+        player[this.layer].milestones.push('s', 4)
+
         for(let loopi=0;loopi<5;loopi++){
             if(hasMilestone('c', loopi)){
                 //its i+1 because unused 0th milestone
                 player[this.layer].milestones.push('s', loopi+1)
-                console.log("debug loopi" + loopi)
+                // debug stuff console.log("debug loopi" + loopi)
             }
         }
     },
@@ -242,13 +264,15 @@ addLayer("s", {
             description: "Increase square gain by current square amount.",
             cost: new Decimal(30),
             effect() {
+                if(hasUpgrade('l', 22)){ return 1 }
+
                 let eff = new Decimal(0.1)
                 if(hasUpgrade('s', 14)) { eff = eff.add(new Decimal(0.05)) }
                 return player[this.layer].points.add(1).pow(eff)
             },
             effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" }, // Add formatting to the effect
             unlocked(){
-                return hasUpgrade('l', 21)
+                return hasUpgrade('l', 21) && !hasUpgrade('l', 22)
             }
         },
         14: {
@@ -256,7 +280,7 @@ addLayer("s", {
             description: "Increase previous upgrade effect exponent by 0.05.",
             cost: new Decimal(150),
             unlocked(){
-                return hasUpgrade('l', 21)
+                return hasUpgrade('l', 21) && !hasUpgrade('l', 22)
             }
         },
         15: {
@@ -273,10 +297,13 @@ addLayer("s", {
             title: "Generators",
             cost(x) {
                 let cost = new Decimal(1000).pow(new Decimal(1).plus(new Decimal(0.25).times(x))).round()
+                if(hasUpgrade('l', 22)){
+                    cost = cost.times(new Decimal(100).pow(x).pow(x.times(0.25).plus(1)))
+                }
                 return cost
             },
             effect() {
-                amt = getBuyableAmount(this.layer, this.id)
+                let amt = getBuyableAmount(this.layer, this.id)
                 return new Decimal(1).times(new Decimal(1.25).pow(amt))
             },
             display() {
@@ -326,7 +353,11 @@ addLayer("c", {
         return new Decimal(player[this.layer].points.pow(1.2).add(1))
     },
     effectDescription() {
-        return "which are boosting square gain by " + format(tmp[this.layer].effect)
+        if(hasUpgrade('l', 22)){
+            return "which are boosting square gain by " + format(tmp[this.layer].effect)
+        }else{
+            return "which are boosting square gain by " + format(tmp[this.layer].effect) + " <br><small> You might need another upgrade to progress. </small>"
+        }
     },
     canBuyMax() {
         return false;
@@ -334,7 +365,7 @@ addLayer("c", {
     milestones: {
         0: {
             requirementDescription: "1 Cubes",
-            effectDescription: "Unlocks a minigame. Also keep a Square milestone per Cube milestone on reset. (WORK IN PROGRESS)",
+            effectDescription: "Keep a Square milestone per Cube milestone on reset.",
             done() { return player[this.layer].points.gte(new Decimal(1)) }
         },
     }
