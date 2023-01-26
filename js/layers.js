@@ -14,8 +14,22 @@ addLayer('l', {
     baseAmount() {return player.points}, // Get the current amount of baseResource
     type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
     exponent: 0.5, // Prestige currency exponent
+    effectDescription() {
+        if(player[this.layer].points.gte(1e10) && !hasUpgrade('l', 21)){
+            return "which aren't boosting any production. <br><small>Line gain is hardcapped at e10.</small>"
+        }
+        if(player[this.layer].points.gte(1e20) && !hasUpgrade('l', 22)){
+            return "which aren't boosting any production. <br><small>Line gain is hardcapped at e20.</small>"
+        }
+        return "which aren't boosting any production."
+    },
     gainMult() { // Calculate the multiplier for main currency from bonuses
         let mult = new Decimal(1)
+
+        if (hasUpgrade('l', 16)) mult = mult.add(new Decimal(1))
+        if (hasUpgrade('l', 21)) mult = mult.add(new Decimal(1))
+        if (hasUpgrade('l', 22)) mult = mult.add(new Decimal(1))
+
         if (hasUpgrade('l', 13)) mult = mult.times(upgradeEffect('l', 13))
         if (hasUpgrade('l', 14) && !hasUpgrade('l', 21)) mult = mult.times(upgradeEffect('l', 14))
         if (hasUpgrade('l', 15) && !hasUpgrade('l', 21)) mult = mult.times(upgradeEffect('l', 14)) //squaring the upgrade effect
@@ -25,12 +39,22 @@ addLayer('l', {
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
         let exp = new Decimal(1)
-        if (hasUpgrade('l', 21)) exp = exp.add(new Decimal(0.1))
-        if (hasUpgrade('l', 22)) exp = exp.add(new Decimal(0.1))
         if (hasUpgrade('s', 12)) exp = exp.add(new Decimal(0.05))
+        if (player[this.layer].points.gte(1e10)){
+            if (!hasUpgrade('l', 21)){
+                exp = new Decimal(0)
+            }
+        }
+        if (player[this.layer].points.gte(1e20)){
+            if (!hasUpgrade('l', 22)){
+                exp = new Decimal(0)
+            }
+        }
+
         return exp
     },
     row: 0, // Row the layer is in on the tree (0 is the first row)
+    branches: ['s'],
     hotkeys: [
         {key: 'l', description: "L: Reset for lines", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
@@ -92,12 +116,17 @@ addLayer('l', {
                 return !hasUpgrade('l', 21)
             }
         },
+        16: {
+            title: "Equipment",
+            description: "This upgrade and every upgrade after will increase base line gain by 1.",
+            cost: new Decimal(50),
+        },
         21: {
             title: "Deflate",
-            description: "Remove Line inflate upgrades and resets all resources, but unlocks square features and increases line gain exponent by 0.1<br><br> <b>PERMANENT UPGRADE</b>",
-            cost: new Decimal("e14814814"),
+            description: "Remove Line inflate upgrades and resets all resources, but unlocks more features.<br><br> <b>PERMANENT UPGRADE</b>",
+            cost: new Decimal("e10"),
             unlocked() {
-                return((player[this.layer].points.gte(new Decimal("e10000")) && hasMilestone('s', 1)) || hasUpgrade('l', 21))
+                return((player[this.layer].points.gte(new Decimal("e9")) && hasMilestone('s', 1)) || hasUpgrade('l', 21))
             },
             onPurchase() {
                 player[this.layer].points = new Decimal(0)
@@ -107,7 +136,7 @@ addLayer('l', {
         },
         22: {
             title: "Deflate 2",
-            description: "Remove Square inflate upgrade, nerf square and generators, and resets all resources, but unlocks square and cube features and increases line gain exponent by 0.1<br><br> <b>PERMANENT UPGRADE</b>",
+            description: "Remove Square inflate upgrades, nerf square and generators, and resets all resources, but unlocks more features.<br><br> <b>PERMANENT UPGRADE</b>",
             cost: new Decimal("e20"),
             unlocked() {
                 return((player['c'].points.gte(new Decimal("1"))) || hasUpgrade('l', 22))
@@ -153,6 +182,7 @@ addLayer("s", {
         return new Decimal(1)
     },
     row: 1, // Row the layer is in on the tree (0 is the first row)
+    branches: ['c'],
     hotkeys: [
         {key: 's', description: "T: Reset for squares", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
@@ -330,7 +360,13 @@ addLayer("c", {
     }},
     color: "#FAE7B9",
     resetDescription: "Combine squares into ",
-    requires: new Decimal(1000000), // Can be a function that takes requirement increases into account
+    requires() {
+        if(player[this.layer].points.lt(1)){
+            return new Decimal(1000000)
+        }else{
+            return new Decimal(1e8).pow(player[this.layer].points.add(1))
+        }
+    }, // Can be a function that takes requirement increases into account
     resource: "cubes", // Name of prestige currency
     baseResource: "squares", // Name of resource prestige is based on
     baseAmount() {return player['s'].points}, // Get the current amount of baseResource
@@ -367,6 +403,32 @@ addLayer("c", {
             requirementDescription: "1 Cubes",
             effectDescription: "Keep a Square milestone per Cube milestone on reset.",
             done() { return player[this.layer].points.gte(new Decimal(1)) }
+        },
+        1: {
+            requirementDescription: "2 Cubes",
+            effectDescription: "Automatically purchase Generators, and they cost nothing. (WIP)",
+            done() { return player[this.layer].points.gte(new Decimal(2)) },
+            unlocked() {
+                return hasUpgrade('l', 22)
+            }
+        },
+        2: {
+            requirementDescription: "3 Cubes",
+            effectDescription: "Unlocks a mini layer. (WIP)",
+            done() { return player[this.layer].points.gte(new Decimal(3)) },
+            unlocked() {
+                return hasUpgrade('l', 22)
+            }
+        },
+    },
+    upgrades: {
+        11: {
+            title: "Rubik's Cube",
+            description: "Cube Cube effect (WIP)",
+            cost: new Decimal(27),
+            unlocked(){
+                return hasUpgrade('l', 22)
+            }
         },
     }
 })
