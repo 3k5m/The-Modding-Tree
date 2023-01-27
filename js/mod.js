@@ -14,7 +14,7 @@ let modInfo = {
 // Set your version in num and name
 let VERSION = {
 	num: "0.0.3",
-	name: "The Hypercube Tree",
+	name: "Deflation 1 Update",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
