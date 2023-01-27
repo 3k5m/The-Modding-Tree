@@ -177,15 +177,46 @@ addLayer("s", {
         let mult = new Decimal(1)
         if (hasUpgrade('s', 13)) mult = mult.times(upgradeEffect('s', 13))
         mult = mult.times(tmp['c'].effect);
+        if(hasUpgrade('s', 22)){
+            if (hasUpgrade('s', 21)){
+                mult = mult.times(6)
+            }
+            if (hasUpgrade('s', 23)){
+                mult = mult.times(6)
+            }
+            if (hasUpgrade('s', 24)){
+                mult = mult.times(6)
+            }
+            if (hasUpgrade('s', 25)){
+                mult = mult.times(6)
+            }
+        }else{
+            if (hasUpgrade('s', 21)){
+                mult = mult.times(0.9)
+            }
+            if (hasUpgrade('s', 23)){
+                mult = mult.times(0.9)
+            }
+            if (hasUpgrade('s', 24)){
+                mult = mult.times(0.9)
+            }
+            if (hasUpgrade('s', 25)){
+                mult = mult.times(0.9)
+            }
+        }
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
-        return new Decimal(1)
+        let exp = new Decimal(1)
+        if(hasUpgrade('s', 31)){
+            exp = exp.add(0.1)
+        }
+        return exp
     },
     row: 1, // Row the layer is in on the tree (0 is the first row)
     branches: ['c'],
     hotkeys: [
-        {key: 's', description: "T: Reset for squares", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
+        {key: 's', description: "S: Reset for squares", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
     layerShown(){return true},
     effect(){
@@ -276,7 +307,7 @@ addLayer("s", {
     upgrades: {
         11: {
             title: "Condense",
-            description: "Increase line gain by 1.5 times.",
+            description: "Multiply line gain by 1.5.",
             cost: new Decimal(3),
             unlocked(){
                 return hasUpgrade('l', 21)
@@ -322,6 +353,86 @@ addLayer("s", {
                 return hasUpgrade('l', 21)
             }
         },
+        21: {
+            title: "Fire Hazard",
+            description() {
+                if(!hasUpgrade('s',22)){
+                    return "Decrease square gain by 0.1 times."
+                }else{
+                    return "Increase square gain by 5 times."
+                }
+            },
+            cost: new Decimal(69),
+            unlocked(){
+                return hasUpgrade('l', 22)
+            }
+        },
+        22: {
+            title: "Extinguisher",
+            description: "Multiply Fire Hazard effects by -50 times.",
+            cost: new Decimal(696),
+            unlocked(){
+                return hasUpgrade('s', 21)
+            }
+        },
+        23: {
+            title: "Fire Hazard",
+            description() {
+                if(!hasUpgrade('s',22)){
+                    return "Decrease square gain by 0.1 times."
+                }else{
+                    return "Increase square gain by 5 times."
+                }
+            },
+            cost: new Decimal(6969),
+            unlocked(){
+                return hasUpgrade('s', 21)
+            }
+        },
+        24: {
+            title: "Fire Hazard",
+            description() {
+                if(!hasUpgrade('s',22)){
+                    return "Decrease square gain by 0.1 times."
+                }else{
+                    return "Increase square gain by 5 times."
+                }
+            },
+            cost: new Decimal(69696),
+            unlocked(){
+                return hasUpgrade('s', 23)
+            }
+        },
+        25: {
+            title: "Fire Hazard",
+            description() {
+                if(!hasUpgrade('s',22)){
+                    return "Decrease square gain by 0.1 times."
+                }else{
+                    return "Increase square gain by 5 times."
+                }
+            },
+            cost: new Decimal(696969),
+            unlocked(){
+                return hasUpgrade('s', 24)
+            }
+        },
+        31: {
+            title: "Pyromania",
+            description: "Why are there so many fire hazards?? (raise square gain to 1.1)",
+            cost: new Decimal(1e7),
+            unlocked(){
+                return hasUpgrade('s', 25)
+            }
+        },
+        32: {
+            title: "Burning House",
+            description: "Seeing your house burn gives you DETERMINATION (raise square gain to 1.1)",
+            cost: new Decimal(1e8),
+            unlocked(){
+                return hasUpgrade('s', 31)
+            }
+        },
     },
     buyables: {
         11: {
@@ -338,7 +449,7 @@ addLayer("s", {
                 return new Decimal(1).times(new Decimal(1.25).pow(amt))
             },
             display() {
-                return "Cost: " + format(this.cost()) + "<br> Effect: Increases point gain <br> by " + format(this.effect()) + "x"
+                return "Cost: " + format(this.cost()) + " squares <br> Effect: Increases point gain <br> by " + format(this.effect()) + "x"
             },
             canAfford() { return player[this.layer].points.gte(this.cost()) },
             buy() {
