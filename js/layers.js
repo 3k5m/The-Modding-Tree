@@ -61,6 +61,7 @@ addLayer('l', {
     layerShown(){return true},
     doReset(layer) {
         let has21 = false
+        let has22 = false
         if (hasUpgrade('l', 21)) has21 = true
         if (hasUpgrade('l', 22)) has22 = true
         if (layers[layer].row <= layers[this.layer].row) return;
@@ -136,7 +137,7 @@ addLayer('l', {
         },
         22: {
             title: "Deflate 2",
-            description: "Remove Square inflate upgrades, nerf square and generators, and resets all resources, but unlocks more features.<br><br> <b>PERMANENT UPGRADE</b>",
+            description: "Remove Square inflate upgrades, nerf square and generator effects, and resets all resources, but unlocks more features.<br><br> <b>PERMANENT UPGRADE</b>",
             cost: new Decimal("e20"),
             unlocked() {
                 return((player['c'].points.gte(new Decimal("1"))) || hasUpgrade('l', 22))
@@ -341,13 +342,20 @@ addLayer("s", {
             },
             canAfford() { return player[this.layer].points.gte(this.cost()) },
             buy() {
-                player[this.layer].points = player[this.layer].points.sub(this.cost())
+                if(!hasMilestone('c', 1)){
+                    player[this.layer].points = player[this.layer].points.sub(this.cost())
+                }
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
             },
             unlocked() {
                 return hasMilestone('s', 3)
             }
         },
+    },
+    automate() {
+        if(hasMilestone('c', 1)){
+            buyBuyable('s', 11)
+        }
     }
 }),
 addLayer("c", {
@@ -406,7 +414,7 @@ addLayer("c", {
         },
         1: {
             requirementDescription: "2 Cubes",
-            effectDescription: "Automatically purchase Generators, and they cost nothing. (WIP)",
+            effectDescription: "Automatically purchase Generators, and they cost nothing.",
             done() { return player[this.layer].points.gte(new Decimal(2)) },
             unlocked() {
                 return hasUpgrade('l', 22)
@@ -418,6 +426,9 @@ addLayer("c", {
             done() { return player[this.layer].points.gte(new Decimal(3)) },
             unlocked() {
                 return hasUpgrade('l', 22)
+            },
+            onComplete() {
+                player["mini1"].unlocked = true
             }
         },
     },
@@ -431,4 +442,41 @@ addLayer("c", {
             }
         },
     }
+}),
+addLayer("mini1", {
+    name: "paintings", // This is optional, only used in a few places, If absent it just uses the layer id.
+    symbol: "P", // This appears on the layer's node. Default is the id with the first letter capitalized
+    position: 0, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
+    startData() { return {
+        unlocked: false,
+		points: new Decimal(0),
+        gainPerSec: new Decimal(0),
+    }},
+    color: "#00FFFF",
+    resource: "paintings", // Name of prestige currency
+    type: "none", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
+    tabFormat: [
+        "main-display",
+        ["display-text",
+            function() { return "You are gaining " + format(player['mini1'].gainPerSec) + ' paintings per second.' },
+        ],
+        "blank",
+        "upgrades"
+    ],
+    update(delta){
+        player[this.layer].gainPerSec = new Decimal(0)
+        if(hasUpgrade("mini1", 11)){
+            player[this.layer].gainPerSec = player[this.layer].gainPerSec.add(1)
+        }
+        player[this.layer].points = player[this.layer].points.add(player[this.layer].gainPerSec.times(delta))
+    },
+    row: "side", // Row the layer is in on the tree (0 is the first row)
+    layerShown(){return hasMilestone('c', 2)},
+    upgrades: {
+        11: {
+            title: "Become An Artist",
+            description: "Create 1 painting per second.",
+            cost: new Decimal(0),
+        }
+    },
 })
