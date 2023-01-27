@@ -55,6 +55,8 @@ function getPointGen() {
 	if (hasUpgrade('l', 11)) gain = gain.times(2)
 	if (hasUpgrade('l', 12)) gain = gain.times(upgradeEffect('l', 12))
 	if (getBuyableAmount('s', 11).gte(new Decimal(1))) gain = gain.times(buyableEffect('s', 11))
+
+	gain = gain.times(tmp['mini1'].effect);
 	return gain
 }
 
@@ -64,7 +66,7 @@ function addedPlayerData() { return {
 
 // Display extra things at the top of the page
 var displayThings = [
-	"Current Endgame: 1 Cube"
+	"Current Endgame: 2 Cubes"
 ]
 
 // Determines when the game "ends"

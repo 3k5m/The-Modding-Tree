@@ -34,12 +34,15 @@ addLayer('l', {
         if (hasUpgrade('l', 14) && !hasUpgrade('l', 21)) mult = mult.times(upgradeEffect('l', 14))
         if (hasUpgrade('l', 15) && !hasUpgrade('l', 21)) mult = mult.times(upgradeEffect('l', 14)) //squaring the upgrade effect
         if (hasUpgrade('s', 11)) mult = mult.times(new Decimal(1.5))
+        if (hasUpgrade('c', 11) && hasUpgrade('s', 11)) mult = mult.times(new Decimal(2.25))
+        if (hasUpgrade('s', 34)) mult = mult.times(3)
         mult = mult.times(tmp['s'].effect);
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
         let exp = new Decimal(1)
         if (hasUpgrade('s', 12)) exp = exp.add(new Decimal(0.05))
+        if (hasUpgrade('s', 12) && hasUpgrade('c', 12)) exp = exp.add(new Decimal(0.1))
         if (player[this.layer].points.gte(1e10)){
             if (!hasUpgrade('l', 21)){
                 exp = new Decimal(0)
@@ -177,6 +180,8 @@ addLayer("s", {
         let mult = new Decimal(1)
         if (hasUpgrade('s', 13)) mult = mult.times(upgradeEffect('s', 13))
         mult = mult.times(tmp['c'].effect);
+        if (hasUpgrade('s', 33)) mult = mult.times(upgradeEffect('s', 33))
+
         if(hasUpgrade('s', 22)){
             if (hasUpgrade('s', 21)){
                 mult = mult.times(6)
@@ -211,6 +216,9 @@ addLayer("s", {
         if(hasUpgrade('s', 31)){
             exp = exp.add(0.1)
         }
+        if(hasUpgrade('s', 32)){
+            exp = exp.add(0.1)
+        }
         return exp
     },
     row: 1, // Row the layer is in on the tree (0 is the first row)
@@ -222,6 +230,7 @@ addLayer("s", {
     effect(){
         let eff = new Decimal(player[this.layer].points.pow(new Decimal(1.05))).add(1)
         if(hasUpgrade('s', 15)) eff = eff.times(new Decimal(2))
+        if(hasUpgrade('s', 15) && hasUpgrade('c', 12)) eff = eff.times(new Decimal(3))
         if(hasUpgrade('l', 22)) eff = eff.sqrt()
         if(hasUpgrade('l', 21)) return eff
         else return 1
@@ -307,7 +316,13 @@ addLayer("s", {
     upgrades: {
         11: {
             title: "Condense",
-            description: "Multiply line gain by 1.5.",
+            description() {
+                if(!hasUpgrade('c',11)){
+                    return "Multiply line gain by 1.5."
+                }else{
+                    return "Multiply line gain by 3.375. (Cubed)"
+                }
+            },
             cost: new Decimal(3),
             unlocked(){
                 return hasUpgrade('l', 21)
@@ -315,7 +330,13 @@ addLayer("s", {
         },
         12: {
             title: "Knowledge",
-            description: "Increase line gain exponent by 0.05.",
+            description() {
+                if(!hasUpgrade('c',12)){
+                    return "Increase line gain exponent by 0.05."
+                }else{
+                    return "Increase line gain exponent by 0.15. (Tripled)"
+                }
+            },
             cost: new Decimal(15),
             unlocked(){
                 return hasUpgrade('l', 21)
@@ -347,7 +368,13 @@ addLayer("s", {
         },
         15: {
             title: "Double",
-            description: "Increase Square base by 1.",
+            description() {
+                if(!hasUpgrade('c',12)){
+                    return "Increase Square base by 1."
+                }else{
+                    return "Increase Square base by 3. (Tripled)"
+                }
+            },
             cost: new Decimal(300),
             unlocked(){
                 return hasUpgrade('l', 21)
@@ -433,20 +460,44 @@ addLayer("s", {
                 return hasUpgrade('s', 31)
             }
         },
+        33: {
+            title: "Back to Square One",
+            description: "Increase square gain based on points.",
+            cost: new Decimal(1e10),
+            unlocked(){
+                return hasUpgrade('s', 32)
+            },
+            effect() {
+                return player.points.add(1).pow(0.15)
+            },
+            effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" }, // Add formatting to the effect
+        },
+        34: {
+            title: "What About Triangles?",
+            description: "Triple line gain.",
+            cost: new Decimal(5e13),
+            unlocked(){
+                return hasUpgrade('s', 33)
+            }
+        },
     },
     buyables: {
         11: {
             title: "Generators",
             cost(x) {
-                let cost = new Decimal(1000).pow(new Decimal(1).plus(new Decimal(0.25).times(x))).round()
+                let cost = new Decimal(100).times(new Decimal(10).pow(new Decimal(1).plus(new Decimal(0.25).times(x))).round())
                 if(hasUpgrade('l', 22)){
-                    cost = cost.times(new Decimal(100).pow(x).pow(x.times(0.25).plus(1)))
+                    //cost = cost.times(new Decimal(100).pow(x).pow(x.times(0.25).plus(1)))
                 }
                 return cost
             },
             effect() {
                 let amt = getBuyableAmount(this.layer, this.id)
-                return new Decimal(1).times(new Decimal(1.25).pow(amt))
+                let eff = new Decimal(1).times(new Decimal(1.25).pow(amt)).sqrt()
+                if(hasUpgrade('l', 22)){
+                    eff = eff.sqrt().sqrt()
+                }
+                return eff
             },
             display() {
                 return "Cost: " + format(this.cost()) + " squares <br> Effect: Increases point gain <br> by " + format(this.effect()) + "x"
@@ -494,6 +545,7 @@ addLayer("c", {
     base: 3,
     gainMult() { // Calculate the multiplier for main currency from bonuses
         let mult = new Decimal(1)
+        if (hasUpgrade('mini1', 32)) mult = mult.div(upgradeEffect('mini1', 32))
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -545,6 +597,22 @@ addLayer("c", {
     },
     upgrades: {
         11: {
+            title: "Condense^3",
+            description: "Cube Condense effect",
+            cost: new Decimal(1),
+            unlocked(){
+                return hasUpgrade('l', 22)
+            }
+        },
+        12: {
+            title: "Triple",
+            description: "Triple Knowledge and Double effects",
+            cost: new Decimal(2),
+            unlocked(){
+                return hasUpgrade('l', 22)
+            }
+        },
+        14: {
             title: "Rubik's Cube",
             description: "Cube Cube effect (WIP)",
             cost: new Decimal(27),
@@ -569,25 +637,116 @@ addLayer("mini1", {
     tabFormat: [
         "main-display",
         ["display-text",
-            function() { return "You are gaining " + format(player['mini1'].gainPerSec) + ' paintings per second.' },
+            function() { return "You are creating " + format(player[this.layer].gainPerSec) + ' paintings per second.'},
         ],
         "blank",
+        "clickables",
         "upgrades"
     ],
+    effect(){
+        let exp = new Decimal(1.4)
+        if(hasUpgrade('mini1', 21)) exp = exp.add(0.15)
+        if(hasUpgrade('mini1', 31)) exp = exp.add(0.25)
+        let eff = new Decimal(player[this.layer].points.pow(exp).add(1))
+        return eff
+    },
+    effectDescription() {
+        return "which are boosting points gain by " + format(tmp[this.layer].effect)
+    },
     update(delta){
-        player[this.layer].gainPerSec = new Decimal(0)
-        if(hasUpgrade("mini1", 11)){
-            player[this.layer].gainPerSec = player[this.layer].gainPerSec.add(1)
-        }
-        player[this.layer].points = player[this.layer].points.add(player[this.layer].gainPerSec.times(delta))
+        let gps = new Decimal(0)
+        if(hasUpgrade(this.layer, 11)) gps = gps.add(1)
+        if(hasUpgrade(this.layer, 22)) gps = gps.times(2)
+        if(hasUpgrade(this.layer, 31)) gps = gps.times(0.5)
+        if (hasUpgrade(this.layer, 33)) gps = gps.times(upgradeEffect(this.layer, 33))
+        player[this.layer].gainPerSec = gps
+        player[this.layer].points = player[this.layer].points.add(gps.times(delta))
     },
     row: "side", // Row the layer is in on the tree (0 is the first row)
     layerShown(){return hasMilestone('c', 2)},
+    clickables: {
+        11: {
+            title: "Respec Upgrades",
+            display() {
+                return "This does not refund your paintings."
+            },
+            canClick: true,
+            onClick() {
+                player[this.layer].upgrades = []
+            }
+        }
+    },
     upgrades: {
         11: {
-            title: "Become An Artist",
+            title: "Become An Artist (11)",
             description: "Create 1 painting per second.",
             cost: new Decimal(0),
-        }
+            branches: [21, 22]
+        },
+        21: {
+            title: "Creativity (21)",
+            description: "Increases painting effect exponent by 0.15. <br> Disables upgrade 22",
+            cost: new Decimal(30),
+            unlocked() {
+                return hasUpgrade(this.layer, 11)
+            },
+            canAfford() {
+                return !hasUpgrade(this.layer, 22)
+            },
+            branches: [31, 32]
+        },
+        22: {
+            title: "Art Toolbox (22)",
+            description: "Doubles painting creation speed. <br> Disables upgrade 21",
+            cost: new Decimal(30),
+            unlocked() {
+                return hasUpgrade(this.layer, 11)
+            },
+            canAfford() {
+                return !hasUpgrade(this.layer, 21)
+            },
+            branches: [32, 33]
+        },
+        31: {
+            title: "Quality Over Quantity (31)",
+            description: "Halves painting gain, increases painting effect exponent by 0.25. <br> Disables upgrades 32 and 33",
+            cost: new Decimal(100),
+            unlocked() {
+                return hasUpgrade(this.layer, 21) || hasUpgrade(this.layer, 22)
+            },
+            canAfford() {
+                return !hasUpgrade(this.layer, 32) && !hasUpgrade(this.layer, 33) 
+            },
+        },
+        32: {
+            title: "3D Printer (32)",
+            description: "Paintings divide the cube requirement. <br> Disables upgrades 31 and 33",
+            cost: new Decimal(100),
+            unlocked() {
+                return hasUpgrade(this.layer, 21) || hasUpgrade(this.layer, 22)
+            },
+            canAfford() {
+                return !hasUpgrade(this.layer, 31) && !hasUpgrade(this.layer, 33) 
+            },
+            effect() {
+                return player[this.layer].points.add(1).pow(0.5)
+            },
+            effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" }, // Add formatting to the effect
+        },
+        33: {
+            title: "Inspiration (33)",
+            description: "Current amount of paintings boost paintings creation speed. <br> Disables upgrades 31 and 32",
+            cost: new Decimal(100),
+            unlocked() {
+                return hasUpgrade(this.layer, 21) || hasUpgrade(this.layer, 22)
+            },
+            canAfford() {
+                return !hasUpgrade(this.layer, 31) && !hasUpgrade(this.layer, 32) 
+            },
+            effect() {
+                return player[this.layer].points.add(1).pow(0.15)
+            },
+            effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" }, // Add formatting to the effect
+        },
     },
 })
