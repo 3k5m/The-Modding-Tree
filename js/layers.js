@@ -37,6 +37,9 @@ addLayer('l', {
         if (hasUpgrade('c', 11) && hasUpgrade('s', 11)) mult = mult.times(new Decimal(2.25))
         if (hasUpgrade('s', 34)) mult = mult.times(3)
         mult = mult.times(tmp['s'].effect);
+
+	    if (getBuyableAmount('s', 12).gte(new Decimal(1))) mult = mult.times(buyableEffect('s', 12))
+
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -176,6 +179,16 @@ addLayer("s", {
     type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
     exponent: 0.5, // Prestige currency exponent
     //base: 2, only use base if static layer type
+    tabFormat: [
+        "main-display",
+        "prestige-button",
+        "resource-display",
+        "blank",
+        "buyables",
+        "blank",
+        "upgrades",
+        "milestones"
+    ],
     gainMult() { // Calculate the multiplier for main currency from bonuses
         let mult = new Decimal(1)
         if (hasUpgrade('s', 13)) mult = mult.times(upgradeEffect('s', 13))
@@ -310,6 +323,20 @@ addLayer("s", {
             },
             unlocked(){
                 return hasUpgrade('l', 21)
+            }
+        },
+        5: {
+            requirementDescription: "1e15 Squares",
+            effectDescription: "Unlocks a buyable.",
+            done() { 
+                if(hasUpgrade('l', 22)) {
+                    return player[this.layer].points.gte(new Decimal(1e15))
+                } else {
+                    return false
+                }
+            },
+            unlocked(){
+                return hasUpgrade('l', 22)
             }
         },
     },
@@ -513,6 +540,34 @@ addLayer("s", {
                 return hasMilestone('s', 3)
             }
         },
+        12: {
+            title: "Exponents",
+            cost(x) {
+                let cost = new Decimal(1e15).times(new Decimal(10).pow(new Decimal(1).plus(new Decimal(0.25).times(x))).round())
+                if(hasUpgrade('l', 22)){
+                    //cost = cost.times(new Decimal(100).pow(x).pow(x.times(0.25).plus(1)))
+                }
+                return cost
+            },
+            effect() {
+                let amt = getBuyableAmount(this.layer, this.id)
+                let eff = new Decimal(1).times(new Decimal(1.02).pow(amt))
+                return eff
+            },
+            display() {
+                return "Cost: " + format(this.cost()) + " squares <br> Effect: Increases line gain <br> by " + format(this.effect()) + "x"
+            },
+            canAfford() { return player[this.layer].points.gte(this.cost()) },
+            buy() {
+                if(!hasMilestone('c', 1)){
+                    player[this.layer].points = player[this.layer].points.sub(this.cost())
+                }
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            unlocked() {
+                return hasMilestone('s', 5)
+            }
+        },
     },
     automate() {
         if(hasMilestone('c', 1)){
@@ -586,7 +641,14 @@ addLayer("c", {
         2: {
             requirementDescription: "3 Cubes",
             effectDescription: "Unlocks a mini layer. (WIP)",
-            done() { return player[this.layer].points.gte(new Decimal(3)) },
+            done() { 
+                if(player[this.layer].points.gte(new Decimal(3))){
+                    player["mini1"].unlocked = true
+                    return true
+                }else{
+                    return false
+                }
+            },
             unlocked() {
                 return hasUpgrade('l', 22)
             },
