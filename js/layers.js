@@ -36,6 +36,7 @@ addLayer('l', {
         if (hasUpgrade('s', 11)) mult = mult.times(new Decimal(1.5))
         if (hasUpgrade('c', 11) && hasUpgrade('s', 11)) mult = mult.times(new Decimal(2.25))
         if (hasUpgrade('s', 34)) mult = mult.times(3)
+        if (hasUpgrade('s', 35)) mult = mult.times(10)
         mult = mult.times(tmp['s'].effect);
 
 	    if (getBuyableAmount('s', 12).gte(new Decimal(1))) mult = mult.times(buyableEffect('s', 12))
@@ -194,6 +195,7 @@ addLayer("s", {
         if (hasUpgrade('s', 13)) mult = mult.times(upgradeEffect('s', 13))
         mult = mult.times(tmp['c'].effect);
         if (hasUpgrade('s', 33)) mult = mult.times(upgradeEffect('s', 33))
+        if (hasUpgrade('s', 35)) mult = mult.times(10)
 
         if(hasUpgrade('s', 22)){
             if (hasUpgrade('s', 21)){
@@ -507,6 +509,14 @@ addLayer("s", {
                 return hasUpgrade('s', 33)
             }
         },
+        35: {
+            title: "The Last Upgrade",
+            description: "10x square, line, and points gain.",
+            cost: new Decimal(7e21),
+            unlocked(){
+                return hasUpgrade('s', 34)
+            }
+        },
     },
     buyables: {
         11: {
@@ -559,7 +569,7 @@ addLayer("s", {
             },
             canAfford() { return player[this.layer].points.gte(this.cost()) },
             buy() {
-                if(!hasMilestone('c', 1)){
+                if(!hasMilestone('c', 3)){
                     player[this.layer].points = player[this.layer].points.sub(this.cost())
                 }
                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
@@ -573,6 +583,12 @@ addLayer("s", {
         if(hasMilestone('c', 1)){
             buyBuyable('s', 11)
         }
+        if(hasMilestone('c', 3)){
+            buyBuyable('s', 12)
+        }
+    },
+    autoUpgrade() {
+        return hasMilestone('c', 4)
     }
 }),
 addLayer("c", {
@@ -586,10 +602,13 @@ addLayer("c", {
     color: "#FAE7B9",
     resetDescription: "Combine squares into ",
     requires() {
+        let req = new Decimal(1000000)
         if(player[this.layer].points.lt(1)){
-            return new Decimal(1000000)
+            return req
         }else{
-            return new Decimal(1e8).pow(player[this.layer].points.add(1))
+            req = new Decimal(1e8).pow(player[this.layer].points.add(1))
+            if (hasUpgrade('mini1', 32)) req = req.pow(new Decimal(1).times(upgradeEffect('mini1', 32)))
+            return req
         }
     }, // Can be a function that takes requirement increases into account
     resource: "cubes", // Name of prestige currency
@@ -600,11 +619,13 @@ addLayer("c", {
     base: 3,
     gainMult() { // Calculate the multiplier for main currency from bonuses
         let mult = new Decimal(1)
-        if (hasUpgrade('mini1', 32)) mult = mult.div(upgradeEffect('mini1', 32))
-        return mult
+        //DO NOT USE THIS, USE requires() INSTEAD BECAUSE I MESSED UP FORMULA
+        return mult.reciprocate()
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
-        return new Decimal(1)
+        let exp = new Decimal(1)
+        //DO NOT USE THIS, USE requires() INSTEAD BECAUSE I MESSED UP FORMULA
+        return exp
     },
     row: 2, // Row the layer is in on the tree (0 is the first row)
     hotkeys: [
@@ -640,7 +661,7 @@ addLayer("c", {
         },
         2: {
             requirementDescription: "3 Cubes",
-            effectDescription: "Unlocks a mini layer. (WIP)",
+            effectDescription: "Unlocks a mini layer.",
             done() { 
                 if(player[this.layer].points.gte(new Decimal(3))){
                     player["mini1"].unlocked = true
@@ -654,6 +675,22 @@ addLayer("c", {
             },
             onComplete() {
                 player["mini1"].unlocked = true
+            }
+        },
+        3: {
+            requirementDescription: "4 Cubes",
+            effectDescription: "Automatically purchase Exponents, and they cost nothing.",
+            done() { return player[this.layer].points.gte(new Decimal(4)) },
+            unlocked() {
+                return hasUpgrade('l', 22)
+            }
+        },
+        4: {
+            requirementDescription: "5 Cubes",
+            effectDescription: "Automatically purchase Square upgrades.",
+            done() { return player[this.layer].points.gte(new Decimal(5)) },
+            unlocked() {
+                return hasUpgrade('l', 22)
             }
         },
     },
@@ -782,7 +819,7 @@ addLayer("mini1", {
         },
         32: {
             title: "3D Printer (32)",
-            description: "Paintings divide the cube requirement. <br> Disables upgrades 31 and 33",
+            description: "Paintings reduce the cube requirement exponent. <br> Disables upgrades 31 and 33",
             cost: new Decimal(100),
             unlocked() {
                 return hasUpgrade(this.layer, 21) || hasUpgrade(this.layer, 22)
@@ -791,9 +828,9 @@ addLayer("mini1", {
                 return !hasUpgrade(this.layer, 31) && !hasUpgrade(this.layer, 33) 
             },
             effect() {
-                return player[this.layer].points.add(1).pow(0.5)
+                return player[this.layer].points.pow(0.01).reciprocate()
             },
-            effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" }, // Add formatting to the effect
+            effectDisplay() { return "^" + format(upgradeEffect(this.layer, this.id)) }, // Add formatting to the effect
         },
         33: {
             title: "Inspiration (33)",

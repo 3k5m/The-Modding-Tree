@@ -13,8 +13,8 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.0.3",
-	name: "Deflation 1 Update",
+	num: "0.0.4",
+	name: "Deflation 2 Update",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
@@ -28,6 +28,12 @@ let changelog = `<h1>Changelog:</h1><br>
 		<br>
 	<h3>v0.0.3</h3><br>
 		- Reworked everything<br>
+	<h3>
+	<br>
+	<h3>v0.0.4</h3><br>
+		- Balanced up to 5 cubes<br>
+		- Many new upgrades & milestones for Squares and Cubes<br>
+		- New mini-layer<br>
 	<h3>
 	`
 
@@ -54,6 +60,7 @@ function getPointGen() {
 	let gain = new Decimal(1)
 	if (hasUpgrade('l', 11)) gain = gain.times(2)
 	if (hasUpgrade('l', 12)) gain = gain.times(upgradeEffect('l', 12))
+	if (hasUpgrade('s', 35)) gain = gain.times(10)
 	if (getBuyableAmount('s', 11).gte(new Decimal(1))) gain = gain.times(buyableEffect('s', 11))
 
 	gain = gain.times(tmp['mini1'].effect);
@@ -66,7 +73,7 @@ function addedPlayerData() { return {
 
 // Display extra things at the top of the page
 var displayThings = [
-	"Current Endgame: 2 Cubes"
+	"Current Endgame: 5 Cubes"
 ]
 
 // Determines when the game "ends"
