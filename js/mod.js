@@ -62,6 +62,8 @@ function canGenPoints(){
 
 // Calculate points/sec!
 function getPointGen() {
+	if(!hasMilestone('d', 0)) return new Decimal(0)
+
 	if(!canGenPoints())
 		return new Decimal(0)
 
@@ -72,6 +74,7 @@ function getPointGen() {
 	if (getBuyableAmount('s', 11).gte(new Decimal(1))) gain = gain.times(buyableEffect('s', 11))
 
 	gain = gain.times(tmp['mini1'].effect);
+
 	return gain
 }
 

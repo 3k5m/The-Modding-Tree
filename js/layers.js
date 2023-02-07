@@ -526,7 +526,7 @@ addLayer("s", {
     },
     buyables: {
         11: {
-            title: "Generators",
+            title: "Papercuts",
             cost(x) {
                 let cost = new Decimal(100).times(new Decimal(10).pow(new Decimal(1).plus(new Decimal(0.25).times(x))).round())
                 if(hasMilestone('d', 2)){
@@ -558,7 +558,7 @@ addLayer("s", {
             }
         },
         12: {
-            title: "Exponents",
+            title: "Shadows",
             cost(x) {
                 let cost = new Decimal(1e15).times(new Decimal(10).pow(new Decimal(1).plus(new Decimal(0.25).times(x))).round())
                 if(hasMilestone('d', 2)){
@@ -660,7 +660,7 @@ addLayer("c", {
         },
         1: {
             requirementDescription: "2 Cubes",
-            effectDescription: "Automatically purchase Generators, and they cost nothing.",
+            effectDescription: "Automatically purchase Papercuts, and they cost nothing.",
             done() { return player[this.layer].points.gte(new Decimal(2)) },
             unlocked() {
                 return hasMilestone('c', 0)
@@ -686,7 +686,7 @@ addLayer("c", {
         },
         3: {
             requirementDescription: "4 Cubes",
-            effectDescription: "Automatically purchase Exponents, and they cost nothing.",
+            effectDescription: "Automatically purchase Shadows, and they cost nothing.",
             done() { return player[this.layer].points.gte(new Decimal(4)) },
             unlocked() {
                 return hasMilestone('c', 2)
@@ -723,7 +723,7 @@ addLayer("c", {
             description: "Triple Knowledge and Double effects",
             cost: new Decimal(2),
             unlocked(){
-                return hasMilestone('c', 11)
+                return hasUpgrade('c', 11)
             }
         },
         /*14: {
@@ -875,29 +875,20 @@ addLayer("d", {
     color: "#FFD700",
     resetDescription: "Ascend to the next dimension: ",
     requires() {
-        let dimensionRequirements = ["1", "1e6", "1e9", "1e10000"]
+        let dimensionRequirements = ["10", "1e6", "1e9", "1e10000", "e1e5", "e1e6", "e1e7"]
         for(i=0;i<dimensionRequirements.length;i++){
             if(player[this.layer].points.equals(i)){
-                return dimensionRequirements[i]
+                //for some reason all reqs are multiplied by 2, so just /2 the intended req here
+                return new Decimal(dimensionRequirements[i])
             }
         }
     }, // Can be a function that takes requirement increases into account
     resource: "dimensions", // Name of prestige currency
     baseResource: "points", // Name of resource prestige is based on
     baseAmount() {return player.points}, // Get the current amount of baseResource
-    type: "static", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
+    type: "custom", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
     exponent: 0, // Prestige currency exponent
-    base: 0,
-    gainMult() { // Calculate the multiplier for main currency from bonuses
-        let mult = new Decimal(1)
-        //DO NOT USE THIS, USE requires() INSTEAD BECAUSE I MESSED UP FORMULA
-        return mult.reciprocate()
-    },
-    gainExp() { // Calculate the exponent on main currency from bonuses
-        let exp = new Decimal(1)
-        //DO NOT USE THIS, USE requires() INSTEAD BECAUSE I MESSED UP FORMULA
-        return exp
-    },
+    base: 1,
     row: 10, // Row the layer is in on the tree (0 is the first row)
     layerShown(){return true},
     effect(){
@@ -906,10 +897,29 @@ addLayer("d", {
     canBuyMax() {
         return false;
     },
+    getResetGain() {
+        return new Decimal(1)
+    },
+    getNextAt() {
+        return player[this.layer].requires
+    },
+    nextatDisp() {
+        return format(getNextAt)
+    },
+    canReset() {
+        return player.points.gte(player[this.layer].getNextAt)
+    },
+    prestigeButtonText() {
+        //removed the part where it put the baseresource as it is mentioned below the prestige button
+        return "Ascend into the next dimension. <br> <br> Req: "/* + format(this.baseAmount()) + "/"*/ + format(this.requires()) + " points"
+    },
+    canReset() {
+        return this.baseAmount().gte(this.requires())
+    },
     milestones: {
         0: {
             requirementDescription: "The First Dimension",
-            effectDescription: "Unlock Lines.",
+            effectDescription: "Unlock Lines. Begin generating points.",
             done() { return player[this.layer].points.gte(new Decimal(1)) }
         },
         1: {
