@@ -13,8 +13,8 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.0.4",
-	name: "Deflation 2 Update",
+	num: "0.0.5",
+	name: "Dimensional Update",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
@@ -27,13 +27,21 @@ let changelog = `<h1>Changelog:</h1><br>
 		- Added some more stuff to tesseract layer<br>
 		<br>
 	<h3>v0.0.3</h3><br>
-		- Reworked everything<br>
+		- Rebalanced everything<br>
+		- Added hardcaps to inflation<br>
 	<h3>
 	<br>
 	<h3>v0.0.4</h3><br>
 		- Balanced up to 5 cubes<br>
 		- Many new upgrades & milestones for Squares and Cubes<br>
 		- New mini-layer<br>
+	<h3>
+	<br>
+	<h3>v0.0.5</h3><br>
+		- Removed deflation upgrades.<br>
+		- Added Dimensions layer to function similarly as deflations.<br>
+		- Made the early game a bit slower, will rebalance soon.<br>
+		- Better wording on a lot of upgrades and added an unlock order.<br>
 	<h3>
 	`
 
