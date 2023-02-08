@@ -16,10 +16,10 @@ addLayer('l', {
     exponent: 0.5, // Prestige currency exponent
     effectDescription() {
         if(player[this.layer].points.gte(1e10) && !hasMilestone('d', 1)){
-            return "which aren't boosting any production. <br><small>Line gain is hardcapped at e10.</small>"
+            return "which aren't boosting any production. <br><small>Your Dimensions hardcap Line amount at e10.</small>"
         }
-        if(player[this.layer].points.gte(1e20) && !hasMilestone('d', 2)){
-            return "which aren't boosting any production. <br><small>Line gain is hardcapped at e20.</small>"
+        if(player[this.layer].points.gte(1e15) && !hasMilestone('d', 2)){
+            return "which aren't boosting any production. <br><small>Your Dimensions hardcap Line amount at e15.</small>"
         }
         return "which aren't boosting any production."
     },
@@ -38,24 +38,23 @@ addLayer('l', {
         if (hasUpgrade('s', 35)) mult = mult.times(10)
         mult = mult.times(tmp['s'].effect);
 
-	    if (getBuyableAmount('s', 12).gte(new Decimal(1))) mult = mult.times(buyableEffect('s', 12))
+        if (hasUpgrade('s', 12)) mult = mult.add(new Decimal(5))
+        if (hasUpgrade('s', 12) && hasUpgrade('c', 12)) mult = mult.add(new Decimal(125))
 
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
         let exp = new Decimal(1)
-        if (hasUpgrade('s', 12)) exp = exp.add(new Decimal(0.05))
-        if (hasUpgrade('s', 12) && hasUpgrade('c', 12)) exp = exp.add(new Decimal(0.1))
         if (player[this.layer].points.gte(1e10)){
             if (!hasMilestone('d', 1)){
                 exp = new Decimal(0)
                 player[this.layer].points = new Decimal(1e10)
             }
         }
-        if (player[this.layer].points.gte(1e20)){
+        if (player[this.layer].points.gte(1e15)){
             if (!hasMilestone('d', 2)){
                 exp = new Decimal(0)
-                player[this.layer].points = new Decimal(1e20)
+                player[this.layer].points = new Decimal(1e15)
             }
         }
 
@@ -91,7 +90,7 @@ addLayer('l', {
             description: "Increase points gain based on current lines amount.",
             cost: new Decimal(2),
             effect() {
-                return player[this.layer].points.add(1).pow(0.5)
+                return player[this.layer].points.add(2).pow(0.5)
             },
             effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" }, // Add formatting to the effect
         },
@@ -100,7 +99,7 @@ addLayer('l', {
             description: "Increase lines gain based on points.",
             cost: new Decimal(4),
             effect() {
-                return player.points.add(1).pow(0.15)
+                return player.points.add(2).pow(0.15)
             },
             effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" }, // Add formatting to the effect
         },
@@ -125,6 +124,15 @@ addLayer('l', {
             unlocked() {
                 return !hasMilestone('d', 1)
             }
+        },
+        21: {
+            title: "Ascension",
+            description: "Increase squares gain based on lines.",
+            cost: new Decimal("1e42"),
+            effect() {
+                return player.points.div(1e25).pow(0.15)
+            },
+            effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" }, // Add formatting to the effect
         },
         //moving the effect to dimensions layer
         /*16: {
@@ -188,9 +196,7 @@ addLayer("s", {
         "main-display",
         "prestige-button",
         "resource-display",
-        "blank",
         "buyables",
-        "blank",
         "upgrades",
         "milestones"
     ],
@@ -229,16 +235,14 @@ addLayer("s", {
                 mult = mult.times(0.9)
             }
         }
+        if (hasUpgrade('l', 21)) mult = mult.times(upgradeEffect('l', 21))
+        if(hasUpgrade('s', 31)){ mult = mult.times(10) }
+        if(hasUpgrade('s', 32)){ mult = mult.times(10) }
+
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
         let exp = new Decimal(1)
-        if(hasUpgrade('s', 31)){
-            exp = exp.add(0.1)
-        }
-        if(hasUpgrade('s', 32)){
-            exp = exp.add(0.1)
-        }
         return exp
     },
     row: 1, // Row the layer is in on the tree (0 is the first row)
@@ -248,15 +252,16 @@ addLayer("s", {
     ],
     layerShown(){return hasMilestone('d', 1)},
     effect(){
-        let eff = new Decimal(player[this.layer].points.pow(new Decimal(1.05))).add(1)
-        if(hasUpgrade('s', 15)) eff = eff.times(new Decimal(2))
-        if(hasUpgrade('s', 15) && hasUpgrade('c', 12)) eff = eff.times(new Decimal(3))
+        let base = player[this.layer].points
+        if(hasUpgrade('s', 15)) base = base.times(new Decimal(2))
+        if(hasUpgrade('s', 15) && hasUpgrade('c', 12)) base = base.times(new Decimal(4))
+        let eff = new Decimal(base.pow(new Decimal(1.05))).add(1)
         if(hasMilestone('d', 2)) eff = eff.sqrt()
         if(hasMilestone('d', 1)) return eff
         else return 1
     },
     effectDescription() {
-        if(hasMilestone('d', 1)) return "which are boosting line gain by " + format(tmp[this.layer].effect)
+        if(hasMilestone('d', 1)) return "which are boosting line gain by " + format(tmp[this.layer].effect) + "."
         else return "which aren't boosting any production. <br><small> You might need another upgrade to progress. </small>"
     },
     doReset(layer) {
@@ -367,9 +372,9 @@ addLayer("s", {
             title: "Knowledge",
             description() {
                 if(!hasUpgrade('c',12)){
-                    return "Increase line gain exponent by 0.05."
+                    return "Multiply line gain by 5."
                 }else{
-                    return "Increase line gain exponent by 0.15. (Tripled)"
+                    return "Multiply line gain by 125. (Cubed)"
                 }
             },
             cost: new Decimal(15),
@@ -383,9 +388,8 @@ addLayer("s", {
             cost: new Decimal(30),
             effect() {
                 if(hasMilestone('d', 2)){ return 1 }
-
                 let eff = new Decimal(0.1)
-                if(hasUpgrade('s', 14)) { eff = eff.add(new Decimal(0.05)) }
+                if(hasUpgrade('s', 14)) { eff = eff.add(new Decimal(0.1)) }
                 return player[this.layer].points.add(1).pow(eff)
             },
             effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" }, // Add formatting to the effect
@@ -395,7 +399,7 @@ addLayer("s", {
         },
         14: {
             title: "Inflate (again)",
-            description: "Increase previous upgrade effect exponent by 0.05. <br><br><b> Inflation Upgrade </b><br>",
+            description: "Double previous upgrade effect exponent. <br><br><b> Inflation Upgrade </b><br>",
             cost: new Decimal(150),
             unlocked(){
                 return hasUpgrade('s', 13) && !hasMilestone('d', 2)
@@ -405,9 +409,9 @@ addLayer("s", {
             title: "Double",
             description() {
                 if(!hasUpgrade('c',12)){
-                    return "Increase Square base by 1."
+                    return "Multiply Square base by 2."
                 }else{
-                    return "Increase Square base by 3. (Tripled)"
+                    return "Multiply Square base by 8. (Cubed)"
                 }
             },
             cost: new Decimal(300),
@@ -481,7 +485,7 @@ addLayer("s", {
         },
         31: {
             title: "Pyromania",
-            description: "Why are there so many fire hazards?? (raise square gain to 1.1)",
+            description: "Why are there so many fire hazards?? (10x square gain)",
             cost: new Decimal(1e7),
             unlocked(){
                 return hasUpgrade('s', 25)
@@ -489,7 +493,7 @@ addLayer("s", {
         },
         32: {
             title: "Burning House",
-            description: "Seeing your house burn gives you DETERMINATION (raise square gain to 1.1)",
+            description: "Looks like the extinguisher wasn't enough... (10x square gain)",
             cost: new Decimal(1e8),
             unlocked(){
                 return hasUpgrade('s', 31)
@@ -538,13 +542,13 @@ addLayer("s", {
                 let amt = getBuyableAmount(this.layer, this.id)
                 let eff = new Decimal(1).times(new Decimal(1.25).pow(amt)).sqrt()
                 if(hasMilestone('d', 2)){
-                    eff = eff.sqrt().sqrt()
+                    //eff = eff.sqrt()
                 }
                 return eff
             },
             display() {
                 if(!hasMilestone('d', 2)) return "Cost: " + format(this.cost()) + " squares <br> Effect: Increases point gain <br> by " + format(this.effect()) + "x"
-                else return "Cost: " + format(this.cost()) + " squares <br> Effect: Increases point gain <br> by " + format(this.effect()) + "x (Nerfed by 3rd dimension)"
+                else return "Cost: " + format(this.cost()) + " squares <br> Effect: Increases point gain <br> by " + format(this.effect()) + "x"// removed nerf for now -> (Nerfed by 3rd dimension)"
             },
             canAfford() { return player[this.layer].points.gte(this.cost()) },
             buy() {
@@ -572,7 +576,7 @@ addLayer("s", {
                 return eff
             },
             display() {
-                return "Cost: " + format(this.cost()) + " squares <br> Effect: Increases line gain <br> by " + format(this.effect()) + "x"
+                return "Cost: " + format(this.cost()) + " squares <br> Effect: Increases points gain <br> by " + format(this.effect()) + "x"
             },
             canAfford() { return player[this.layer].points.gte(this.cost()) },
             buy() {
@@ -644,9 +648,9 @@ addLayer("c", {
     },
     effectDescription() {
         if(hasMilestone('d', 2)){
-            return "which are boosting square gain by " + format(tmp[this.layer].effect)
+            return "which are boosting square gain by " + format(tmp[this.layer].effect) + "."
         }else{
-            return "which are boosting square gain by " + format(tmp[this.layer].effect) + " <br><small> You might need another upgrade to progress. </small>"
+            return "which are boosting square gain by " + format(tmp[this.layer].effect) + ". <br><small> You might need another upgrade to progress. </small>"
         }
     },
     canBuyMax() {
@@ -686,7 +690,7 @@ addLayer("c", {
         },
         3: {
             requirementDescription: "4 Cubes",
-            effectDescription: "Automatically purchase Shadows, and they cost nothing.",
+            effectDescription: "Automatically purchase Shadows, and they cost nothing. Also unlocks a line upgrade. <br><small> Try different Painting upgrades if you get stuck. </small>",
             done() { return player[this.layer].points.gte(new Decimal(4)) },
             unlocked() {
                 return hasMilestone('c', 2)
@@ -694,7 +698,7 @@ addLayer("c", {
         },
         4: {
             requirementDescription: "5 Cubes",
-            effectDescription: "Automatically purchase Square upgrades.",
+            effectDescription: "Automatically purchase Square upgrades. Painting upgrades no longer disable each other.",
             done() { return player[this.layer].points.gte(new Decimal(5)) },
             unlocked() {
                 return hasMilestone('c', 3)
@@ -702,8 +706,8 @@ addLayer("c", {
         },
         5: {
             requirementDescription: "9 Cubes",
-            effectDescription: "Automatically purchase Square upgrades.",
-            done() { return player[this.layer].points.gte(new Decimal(5)) },
+            effectDescription: "Unlocks Cube inflation upgrades.",
+            done() { return player[this.layer].points.gte(new Decimal(9)) },
             unlocked() {
                 return hasMilestone('c', 4)
             }
@@ -715,12 +719,12 @@ addLayer("c", {
             description: "Cube Condense effect",
             cost: new Decimal(1),
             unlocked(){
-                return hasMilestone('d', 2)
+                return hasMilestone('c', 2)
             }
         },
         12: {
-            title: "Triple",
-            description: "Triple Knowledge and Double effects",
+            title: "Double Knowledge^3",
+            description: "Cube Knowledge and Double effects",
             cost: new Decimal(2),
             unlocked(){
                 return hasUpgrade('c', 11)
@@ -799,47 +803,63 @@ addLayer("mini1", {
         },
         21: {
             title: "Creativity (21)",
-            description: "Increases painting effect exponent by 0.15. <br> Disables upgrade 22",
+            description() { 
+                if(!hasMilestone('c', 4)) return "Increases painting effect exponent by 0.15. <br> Disables upgrade 22"
+                else return "Increases painting effect exponent by 0.15."
+            },
             cost: new Decimal(30),
             unlocked() {
                 return hasUpgrade(this.layer, 11)
             },
             canAfford() {
+                if(hasMilestone('c', 4)) return true
                 return !hasUpgrade(this.layer, 22)
             },
             branches: [31, 32]
         },
         22: {
             title: "Art Toolbox (22)",
-            description: "Doubles painting creation speed. <br> Disables upgrade 21",
+            description() { 
+                if(!hasMilestone('c', 4)) return "Doubles painting creation speed. <br> Disables upgrade 21"
+                else return "Doubles painting creation speed."
+            },
             cost: new Decimal(30),
             unlocked() {
                 return hasUpgrade(this.layer, 11)
             },
             canAfford() {
+                if(hasMilestone('c', 4)) return true
                 return !hasUpgrade(this.layer, 21)
             },
             branches: [32, 33]
         },
         31: {
             title: "Quality Over Quantity (31)",
-            description: "Halves painting gain, increases painting effect exponent by 0.25. <br> Disables upgrades 32 and 33",
+            description() { 
+                if(!hasMilestone('c', 4)) return "Halves painting gain, increases painting effect exponent by 0.25. <br> Disables upgrades 32 and 33"
+                else return "Halves painting gain, increases painting effect exponent by 0.25."
+            },
             cost: new Decimal(100),
             unlocked() {
                 return hasUpgrade(this.layer, 21) || hasUpgrade(this.layer, 22)
             },
             canAfford() {
+                if(hasMilestone('c', 4)) return true
                 return !hasUpgrade(this.layer, 32) && !hasUpgrade(this.layer, 33) 
             },
         },
         32: {
             title: "3D Printer (32)",
-            description: "Paintings reduce the cube requirement exponent. <br> Disables upgrades 31 and 33",
+            description() { 
+                if(!hasMilestone('c', 4)) return "Paintings reduce the cube requirement exponent. <br> Disables upgrades 31 and 33"
+                else return "Paintings reduce the cube requirement exponent."
+            },
             cost: new Decimal(100),
             unlocked() {
                 return hasUpgrade(this.layer, 21) || hasUpgrade(this.layer, 22)
             },
             canAfford() {
+                if(hasMilestone('c', 4)) return true
                 return !hasUpgrade(this.layer, 31) && !hasUpgrade(this.layer, 33) 
             },
             effect() {
@@ -849,12 +869,16 @@ addLayer("mini1", {
         },
         33: {
             title: "Inspiration (33)",
-            description: "Current amount of paintings boost paintings creation speed. <br> Disables upgrades 31 and 32",
+            description() { 
+                if(!hasMilestone('c', 4)) return "Current amount of paintings boost paintings creation speed. <br> Disables upgrades 31 and 32"
+                else return "Current amount of paintings boost paintings creation speed."
+            },
             cost: new Decimal(100),
             unlocked() {
                 return hasUpgrade(this.layer, 21) || hasUpgrade(this.layer, 22)
             },
             canAfford() {
+                if(hasMilestone('c', 4)) return true
                 return !hasUpgrade(this.layer, 31) && !hasUpgrade(this.layer, 32) 
             },
             effect() {
@@ -919,12 +943,12 @@ addLayer("d", {
     milestones: {
         0: {
             requirementDescription: "The First Dimension",
-            effectDescription: "Unlock Lines. Begin generating points.",
+            effectDescription: "<b>Unlocks:</b>Unlocks a new layer (Lines). Begin generating points.",
             done() { return player[this.layer].points.gte(new Decimal(1)) }
         },
         1: {
             requirementDescription: "The Second Dimension",
-            effectDescription: "Unlock Squares, remove line inflation upgrades. Also, increase base line gain by 1.",
+            effectDescription: "<b>Unlocks:</b>Unlocks a new layer (Squares)<br><b>Effects:</b>Remove line inflation upgrades, increase Line hardcap to e15, and increase base line gain by 1.",
             done() { return player[this.layer].points.gte(new Decimal(2)) },
             unlocked() {
                 return hasMilestone('d', 0)
@@ -932,7 +956,7 @@ addLayer("d", {
         },
         2: {
             requirementDescription: "The Third Dimension",
-            effectDescription: "Unlock Cubes, remove square inflation upgrades. Also, increase base square gain by 1.",
+            effectDescription: "<b>Unlocks:</b>Unlocks a new layer (Cubes)<br><b>Effects:</b>Remove square inflation upgrades, increase Line hardcap to e100, and increase base square gain by 1.",
             done() { return player[this.layer].points.gte(new Decimal(3)) },
             unlocked() {
                 return hasMilestone('d', 1)
@@ -940,7 +964,7 @@ addLayer("d", {
         },
         3: {
             requirementDescription: "The Fourth Dimension",
-            effectDescription: "Unlock Tesseracts. (Note: Finishing cube layer then I will rebalance cubes to be normal layer so you won't have more tesseracts than cubes. Then I will be adding tesseracts. )",
+            effectDescription: "<b>Unlocks:</b>Unlocks a new layer (Tesseracts).<br><b>Effects:</b> (Note: Finishing cube layer then I will rebalance cubes to be normal layer so you won't have more tesseracts than cubes. Then I will be adding tesseracts. )",
             done() { return player[this.layer].points.gte(new Decimal(4)) },
             unlocked() {
                 return hasMilestone('d', 2)
