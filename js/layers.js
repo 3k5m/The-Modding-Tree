@@ -130,7 +130,7 @@ addLayer('l', {
             description: "Increase squares gain based on lines.",
             cost: new Decimal("1e42"),
             effect() {
-                return player.points.div(1e25).pow(0.15)
+                return new Decimal(1).add(player.points.div(1e25).pow(0.15))
             },
             effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" }, // Add formatting to the effect
         },
@@ -507,7 +507,7 @@ addLayer("s", {
                 return hasUpgrade('s', 32)
             },
             effect() {
-                return player.points.add(1).pow(0.15)
+                return player.points.add(1).pow(0.05)
             },
             effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" }, // Add formatting to the effect
         },
@@ -532,7 +532,7 @@ addLayer("s", {
         11: {
             title: "Papercuts",
             cost(x) {
-                let cost = new Decimal(100).times(new Decimal(10).pow(new Decimal(1).plus(new Decimal(0.25).times(x))).round())
+                let cost = new Decimal(100).times(new Decimal(10).pow(new Decimal(2).plus(new Decimal(0.25).times(x).pow(new Decimal(1).plus(new Decimal(0.1).times(x))))).round())
                 if(hasMilestone('d', 2)){
                     //cost = cost.times(new Decimal(100).pow(x).pow(x.times(0.25).plus(1)))
                 }
@@ -540,7 +540,7 @@ addLayer("s", {
             },
             effect() {
                 let amt = getBuyableAmount(this.layer, this.id)
-                let eff = new Decimal(1).times(new Decimal(1.25).pow(amt)).sqrt()
+                let eff = new Decimal(1).times(new Decimal(2.25).pow(amt))
                 if(hasMilestone('d', 2)){
                     //eff = eff.sqrt()
                 }
@@ -564,7 +564,7 @@ addLayer("s", {
         12: {
             title: "Shadows",
             cost(x) {
-                let cost = new Decimal(1e15).times(new Decimal(10).pow(new Decimal(1).plus(new Decimal(0.25).times(x))).round())
+                let cost = new Decimal(1e15).times(new Decimal(10).pow(new Decimal(1).plus(new Decimal(1.75).pow(x))).round())
                 if(hasMilestone('d', 2)){
                     //cost = cost.times(new Decimal(100).pow(x).pow(x.times(0.25).plus(1)))
                 }
@@ -572,7 +572,7 @@ addLayer("s", {
             },
             effect() {
                 let amt = getBuyableAmount(this.layer, this.id)
-                let eff = new Decimal(1).times(new Decimal(1.02).pow(amt))
+                let eff = new Decimal(1).times(new Decimal(3).pow(amt))
                 return eff
             },
             display() {
@@ -600,6 +600,10 @@ addLayer("s", {
     },
     autoUpgrade() {
         return hasMilestone('c', 4)
+    },
+    passiveGeneration(){
+        if(hasMilestone('c',5)) { return 1; }
+        return 0;
     }
 }),
 addLayer("c", {
@@ -664,7 +668,7 @@ addLayer("c", {
         },
         1: {
             requirementDescription: "2 Cubes",
-            effectDescription: "Automatically purchase Papercuts, and they cost nothing.",
+            effectDescription: "Automatically purchase first Square buyable, and it costs nothing.",
             done() { return player[this.layer].points.gte(new Decimal(2)) },
             unlocked() {
                 return hasMilestone('c', 0)
@@ -690,7 +694,7 @@ addLayer("c", {
         },
         3: {
             requirementDescription: "4 Cubes",
-            effectDescription: "Automatically purchase Shadows, and they cost nothing. Also unlocks a line upgrade. <br><small> Try different Painting upgrades if you get stuck. </small>",
+            effectDescription: "Automatically purchase second Square buyable, and it costs nothing. Also unlocks a line upgrade. <br><small> Try different Painting upgrades if you get stuck. </small>",
             done() { return player[this.layer].points.gte(new Decimal(4)) },
             unlocked() {
                 return hasMilestone('c', 2)
@@ -706,7 +710,7 @@ addLayer("c", {
         },
         5: {
             requirementDescription: "9 Cubes",
-            effectDescription: "Unlocks Cube inflation upgrades.",
+            effectDescription: "Gain 100% of Squares on reset every second. Unlocks 4D related upgrades.",
             done() { return player[this.layer].points.gte(new Decimal(9)) },
             unlocked() {
                 return hasMilestone('c', 4)
@@ -730,6 +734,14 @@ addLayer("c", {
                 return hasUpgrade('c', 11)
             }
         },
+        13: {
+            title: "A Glimpse of 4D",
+            description: " does something cool that lets you get to like e200 points or something idk WIP",
+            cost: new Decimal(9),
+            unlocked(){
+                return hasMilestone('c', 5)
+            }
+        }
         /*14: {
             title: "Rubik's Cube",
             description: "Cube Cube effect (WIP)",
