@@ -3,7 +3,7 @@ let modInfo = {
 	id: "3ktree1",
 	author: "3k5m",
 	pointsName: "points",
-	modFiles: ["layers.js", "tree.js"],
+	modFiles: ["tree.js"],
 
 	discordName: "",
 	discordLink: "",
@@ -23,8 +23,7 @@ let changelog = `<h1>Changelog:</h1><br>
 		- First attempt at making a TMT mod!<br>
 		<br>
 	<h3>v0.0.2</h3><br>
-		- Added a new layer<br>
-		- Added some more stuff to tesseract layer<br>
+		- Added a new layer.<br>
 		<br>
 	<h3>v0.0.3</h3><br>
 		- Rebalanced everything<br>
@@ -42,6 +41,11 @@ let changelog = `<h1>Changelog:</h1><br>
 		- Added Dimensions layer to function similarly as deflations.<br>
 		- Made the early game a bit slower, will rebalance soon.<br>
 		- Better wording on a lot of upgrades and added an unlock order.<br>
+	<h3>
+	<br>
+	<h3>v0.0.6</h3><br>
+		- Rebalanced cubes<br>
+		- more stuff idk dont push yet 
 	<h3>
 	`
 
@@ -85,7 +89,7 @@ function addedPlayerData() { return {
 
 // Display extra things at the top of the page
 var displayThings = [
-	"Current Endgame: 5 Cubes"
+	"Current Endgame: 9 Cubes"
 ]
 
 // Determines when the game "ends"
