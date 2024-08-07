@@ -13,6 +13,7 @@ addLayer("d", {
         for(i=0;i<dimensionRequirements.length;i++){
             if(player[this.layer].points.equals(i)){
                 //for some reason all reqs are multiplied by 2, so just /2 the intended req here
+                // note: idk wtf above means, TODO: check what that means??? - 2024-08
                 return new Decimal(dimensionRequirements[i])
             }
         }

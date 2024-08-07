@@ -134,7 +134,7 @@ addLayer('l', {
             },
             effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" }, // Add formatting to the effect
             unlocked() {
-                return hasMilestone('d', 1)
+                return hasMilestone('d', 2) // unlocks same time as Cubes
             }
         },
         22: {

@@ -262,11 +262,11 @@ addLayer("s", {
         21: {
             title: "Fire Hazard",
             description() {
-                if(hasUpgrade('c', 13)) return "Increase square gain by 12500 times. (Cubed)"
+                if(hasUpgrade('c', 13)) return "Multiply square gain by 12500. (Cubed)"
                 if(!hasUpgrade('s',22)){
-                    return "Decrease square gain by 0.1 times."
+                    return "Multiply square gain by 0.9. Unlocks Extinguisher."
                 }else{
-                    return "Increase square gain by 5 times."
+                    return "Multiply square gain by 5."
                 }
             },
             cost: new Decimal(69),
@@ -277,8 +277,8 @@ addLayer("s", {
         22: {
             title: "Extinguisher",
             description() {
-                if(hasUpgrade('c', 13)) return "Multiply Fire Hazard effects by 125000 times. (Cubed)"
-                return "Multiply Fire Hazard effects by -50 times."
+                if(hasUpgrade('c', 13)) return "Multiply Fire Hazard effects by -125000. (Cubed)"
+                return "Multiply Fire Hazard effects by -50."
             },
             cost: new Decimal(696),
             unlocked(){
@@ -288,11 +288,11 @@ addLayer("s", {
         23: {
             title: "Fire Hazard",
             description() {
-                if(hasUpgrade('c', 13)) return "Increase square gain by 12500 times. (Cubed)"
+                if(hasUpgrade('c', 13)) return "Multiply square gain by 12500. (Cubed)"
                 if(!hasUpgrade('s',22)){
-                    return "Decrease square gain by 0.1 times."
+                    return "Multiply square gain by 0.9."
                 }else{
-                    return "Increase square gain by 5 times."
+                    return "Multiply square gain by 5."
                 }
             },
             cost: new Decimal(6969),
@@ -303,11 +303,11 @@ addLayer("s", {
         24: {
             title: "Fire Hazard",
             description() {
-                if(hasUpgrade('c', 13)) return "Increase square gain by 12500 times. (Cubed)"
+                if(hasUpgrade('c', 13)) return "Multiply square gain by 12500. (Cubed)"
                 if(!hasUpgrade('s',22)){
-                    return "Decrease square gain by 0.1 times."
+                    return "Multiply square gain by 0.9."
                 }else{
-                    return "Increase square gain by 5 times."
+                    return "Multiply square gain by 5."
                 }
             },
             cost: new Decimal(69696),
@@ -318,11 +318,11 @@ addLayer("s", {
         25: {
             title: "Fire Hazard",
             description() {
-                if(hasUpgrade('c', 13)) return "Increase square gain by 12500 times. (Cubed)"
+                if(hasUpgrade('c', 13)) return "Multiply square gain by 12500. (Cubed)"
                 if(!hasUpgrade('s',22)){
-                    return "Decrease square gain by 0.1 times."
+                    return "Multiply square gain by 0.9."
                 }else{
-                    return "Increase square gain by 5 times."
+                    return "Multiply square gain by 5."
                 }
             },
             cost: new Decimal(696969),
@@ -369,7 +369,7 @@ addLayer("s", {
         35: {
             title: "The Last Upgrade",
             description: "10x square, line, and points gain.",
-            cost: new Decimal(7e21),
+            cost: new Decimal(7e19),
             unlocked(){
                 return hasUpgrade('s', 34)
             }

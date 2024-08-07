@@ -2,6 +2,7 @@ let modInfo = {
 	name: "The Hyperdimensions Tree",
 	id: "3ktree1",
 	author: "3k5m",
+	tester: "hz (hz4430)",
 	pointsName: "points",
 	modFiles: ["tree.js"],
 
@@ -45,7 +46,7 @@ let changelog = `<h1>Changelog:</h1><br>
 	<br>
 	<h3>v0.0.6</h3><br>
 		- Rebalanced cubes<br>
-		- more stuff idk dont push yet 
+		- small fixes for clarity
 	<h3>
 	`
 
