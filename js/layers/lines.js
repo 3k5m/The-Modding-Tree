@@ -35,7 +35,7 @@ addLayer('l', {
         if (hasUpgrade('s', 11)) mult = mult.times(new Decimal(1.5))
         if (hasUpgrade('c', 11) && hasUpgrade('s', 11)) mult = mult.times(new Decimal(2.25))
         if (hasUpgrade('s', 34)) mult = mult.times(3)
-        if (hasUpgrade('s', 35)) mult = mult.times(10)
+        if (hasUpgrade('s', 35)) mult = mult.times(100)
         mult = mult.times(tmp['s'].effect);
 
         if (hasUpgrade('s', 12)) mult = mult.add(new Decimal(5))

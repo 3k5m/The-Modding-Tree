@@ -29,12 +29,12 @@ addLayer("s", {
         if (hasUpgrade('s', 13)) mult = mult.times(upgradeEffect('s', 13))
         mult = mult.times(tmp['c'].effect);
         if (hasUpgrade('s', 33)) mult = mult.times(upgradeEffect('s', 33))
-        if (hasUpgrade('s', 35)) mult = mult.times(10)
+        if (hasUpgrade('s', 35)) mult = mult.times(100)
 
         let cubefire = new Decimal(1)
 
         if(hasUpgrade('c', 13)) {
-            cubefire = new Decimal(12501)
+            cubefire = new Decimal(216000)
             if (hasUpgrade('s', 21)){
                 mult = mult.times(cubefire)
             }
@@ -266,7 +266,7 @@ addLayer("s", {
                 if(!hasUpgrade('s',22)){
                     return "Multiply square gain by 0.9. Unlocks Extinguisher."
                 }else{
-                    return "Multiply square gain by 5."
+                    return "Multiply square gain by 6."
                 }
             },
             cost: new Decimal(69),
@@ -277,8 +277,8 @@ addLayer("s", {
         22: {
             title: "Extinguisher",
             description() {
-                if(hasUpgrade('c', 13)) return "Multiply Fire Hazard effects by -125000. (Cubed)"
-                return "Multiply Fire Hazard effects by -50."
+                if(hasUpgrade('c', 13)) return "Multiply Fire Hazard effects by -216000. (Cubed)"
+                return "Multiply Fire Hazard effects by -60."
             },
             cost: new Decimal(696),
             unlocked(){
@@ -292,7 +292,7 @@ addLayer("s", {
                 if(!hasUpgrade('s',22)){
                     return "Multiply square gain by 0.9."
                 }else{
-                    return "Multiply square gain by 5."
+                    return "Multiply square gain by 6."
                 }
             },
             cost: new Decimal(6969),
@@ -307,7 +307,7 @@ addLayer("s", {
                 if(!hasUpgrade('s',22)){
                     return "Multiply square gain by 0.9."
                 }else{
-                    return "Multiply square gain by 5."
+                    return "Multiply square gain by 6."
                 }
             },
             cost: new Decimal(69696),
@@ -322,7 +322,7 @@ addLayer("s", {
                 if(!hasUpgrade('s',22)){
                     return "Multiply square gain by 0.9."
                 }else{
-                    return "Multiply square gain by 5."
+                    return "Multiply square gain by 6."
                 }
             },
             cost: new Decimal(696969),
@@ -368,7 +368,7 @@ addLayer("s", {
         },
         35: {
             title: "The Last Upgrade",
-            description: "10x square, line, and points gain.",
+            description: "100x square, line, and points gain.",
             cost: new Decimal(7e19),
             unlocked(){
                 return hasUpgrade('s', 34)

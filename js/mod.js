@@ -75,7 +75,7 @@ function getPointGen() {
 	let gain = new Decimal(1)
 	if (hasUpgrade('l', 11)) gain = gain.times(2)
 	if (hasUpgrade('l', 12)) gain = gain.times(upgradeEffect('l', 12))
-	if (hasUpgrade('s', 35)) gain = gain.times(10)
+	if (hasUpgrade('s', 35)) gain = gain.times(100)
 	if (getBuyableAmount('s', 11).gte(new Decimal(1))) gain = gain.times(buyableEffect('s', 11))
 	if (getBuyableAmount('s', 12).gte(new Decimal(1))) gain = gain.times(buyableEffect('s', 12))
 
