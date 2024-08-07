@@ -14,8 +14,8 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "0.0.5",
-	name: "Dimensional Update",
+	num: "0.1.0",
+	name: "The Fourth Dimension",
 }
 
 let changelog = `<h1>Changelog:</h1><br>
@@ -48,6 +48,11 @@ let changelog = `<h1>Changelog:</h1><br>
 		- Rebalanced cubes<br>
 		- small fixes for clarity
 	<h3>
+	<br>
+	<h3>v0.1.0</h3><br>
+		- Finished everything up to the 4th dimension<br>
+		- Basic functionality laid out for tesseracts
+	<h3>
 	`
 
 let winText = `Congratulations! You have reached the end and beaten this game, but for now...`
@@ -75,11 +80,19 @@ function getPointGen() {
 	let gain = new Decimal(1)
 	if (hasUpgrade('l', 11)) gain = gain.times(2)
 	if (hasUpgrade('l', 12)) gain = gain.times(upgradeEffect('l', 12))
-	if (hasUpgrade('s', 35)) gain = gain.times(100)
+	if(hasUpgrade('s', 35)){
+		gain = gain.times(100)
+		if(hasUpgrade('c', 14)){
+			gain = gain.times(10000)
+		}
+	}
 	if (getBuyableAmount('s', 11).gte(new Decimal(1))) gain = gain.times(buyableEffect('s', 11))
 	if (getBuyableAmount('s', 12).gte(new Decimal(1))) gain = gain.times(buyableEffect('s', 12))
 
 	gain = gain.times(tmp['mini1'].effect);
+
+	//cube inflation
+	if(hasUpgrade('c', 15)) gain = gain.pow(new Decimal(3))
 
 	return gain
 }
@@ -90,7 +103,7 @@ function addedPlayerData() { return {
 
 // Display extra things at the top of the page
 var displayThings = [
-	"Current Endgame: 9 Cubes"
+	"Current Endgame: 4 Dimensions"
 ]
 
 // Determines when the game "ends"

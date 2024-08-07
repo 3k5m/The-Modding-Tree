@@ -21,13 +21,16 @@ addLayer('l', {
         if(player[this.layer].points.gte(1e15) && !hasMilestone('d', 2)){
             return "which aren't boosting any production. <br><small>Your Dimensions hardcap Line amount at e15.</small>"
         }
+        if(player[this.layer].points.gte(1e200) && !hasMilestone('d', 3)){
+            return "which aren't boosting any production. <br><small>Your Dimensions hardcap Line amount at e200.</small>"
+        }
         return "which aren't boosting any production."
     },
     gainMult() { // Calculate the multiplier for main currency from bonuses
         let mult = new Decimal(1)
 
         if (hasUpgrade('l', 16)) mult = mult.add(new Decimal(1))
-        if (hasMilestone('d', 1)) mult = mult.add(new Decimal(1))
+        if (hasMilestone('d', 1)) mult = mult.add(player['d'].points)
 
         if (hasUpgrade('l', 13)) mult = mult.times(upgradeEffect('l', 13))
         if (hasUpgrade('l', 14) && !hasMilestone('d', 1)) mult = mult.times(upgradeEffect('l', 14))
@@ -35,11 +38,20 @@ addLayer('l', {
         if (hasUpgrade('s', 11)) mult = mult.times(new Decimal(1.5))
         if (hasUpgrade('c', 11) && hasUpgrade('s', 11)) mult = mult.times(new Decimal(2.25))
         if (hasUpgrade('s', 34)) mult = mult.times(3)
-        if (hasUpgrade('s', 35)) mult = mult.times(100)
+        if(hasUpgrade('s', 35)){
+            mult = mult.times(100)
+            if(hasUpgrade('c', 14)){
+                mult = mult.times(10000)
+            }
+        }
         mult = mult.times(tmp['s'].effect);
+        mult = mult.times(tmp['t'].effect);
 
-        if (hasUpgrade('s', 12)) mult = mult.add(new Decimal(5))
-        if (hasUpgrade('s', 12) && hasUpgrade('c', 12)) mult = mult.add(new Decimal(125))
+        if (hasUpgrade('s', 12)) mult = mult.times(new Decimal(5))
+        if (hasUpgrade('s', 12) && hasUpgrade('c', 12)) mult = mult.times(new Decimal(125))
+
+        //cube inflation
+        if(hasUpgrade('c', 15)) mult = mult.pow(new Decimal(3))
 
         return mult
     },
@@ -55,6 +67,12 @@ addLayer('l', {
             if (!hasMilestone('d', 2)){
                 exp = new Decimal(0)
                 player[this.layer].points = new Decimal(1e15)
+            }
+        }
+        if (player[this.layer].points.gte(1e200)){
+            if (!hasMilestone('d', 3)){
+                exp = new Decimal(0)
+                player[this.layer].points = new Decimal(1e200)
             }
         }
 

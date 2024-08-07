@@ -9,11 +9,13 @@ addLayer("d", {
     color: "#FFD700",
     resetDescription: "Ascend to the next dimension: ",
     requires() {
-        let dimensionRequirements = ["10", "1e6", "1e9", "1e10000", "e1e5", "e1e6", "e1e7"]
+        let dimensionRequirements = ["10", "1e6", "1e9", "1e600", "e1e6", "e1e7", "e1e8"]
         for(i=0;i<dimensionRequirements.length;i++){
             if(player[this.layer].points.equals(i)){
                 //for some reason all reqs are multiplied by 2, so just /2 the intended req here
                 // note: idk wtf above means, TODO: check what that means??? - 2024-08
+                // checked, pretty sure it was for a different layer type like normal/static. since this is custom layer we don't
+                // need to worry about that
                 return new Decimal(dimensionRequirements[i])
             }
         }
@@ -36,14 +38,14 @@ addLayer("d", {
         return new Decimal(1)
     },
     getNextAt() {
-        return player[this.layer].requires
+        return this.requires()
     },
-    nextatDisp() {
+    /*nextatDisp() {
         return format(getNextAt)
     },
     canReset() {
         return player.points.gte(player[this.layer].getNextAt)
-    },
+    },*/
     prestigeButtonText() {
         //removed the part where it put the baseresource as it is mentioned below the prestige button
         return "Ascend into the next dimension. <br> <br> Req: "/* + format(this.baseAmount()) + "/"*/ + format(this.requires()) + " points"
@@ -59,7 +61,7 @@ addLayer("d", {
         },
         1: {
             requirementDescription: "The Second Dimension",
-            effectDescription: "<b>Unlocks:</b>Unlocks a new layer (Squares)<br><b>Effects:</b>Remove line inflation upgrades, increase Line hardcap to e15, and increase base line gain by 1.",
+            effectDescription: "<b>Unlocks:</b>Unlocks a new layer (Squares)<br><b>Effects:</b>Remove line inflation upgrades, increase Line hardcap to e15, and increase base line gain by number of dimensions.",
             done() { return player[this.layer].points.gte(new Decimal(2)) },
             unlocked() {
                 return hasMilestone('d', 0)
@@ -67,7 +69,7 @@ addLayer("d", {
         },
         2: {
             requirementDescription: "The Third Dimension",
-            effectDescription: "<b>Unlocks:</b>Unlocks a new layer (Cubes)<br><b>Effects:</b>Remove square inflation upgrades, increase Line hardcap to e100, and increase base square gain by 1.",
+            effectDescription: "<b>Unlocks:</b>Unlocks a new layer (Cubes)<br><b>Effects:</b>Remove square inflation upgrades, increase Line hardcap to e200, and increase base square gain by number of dimensions.",
             done() { return player[this.layer].points.gte(new Decimal(3)) },
             unlocked() {
                 return hasMilestone('d', 1)
@@ -75,10 +77,18 @@ addLayer("d", {
         },
         3: {
             requirementDescription: "The Fourth Dimension",
-            effectDescription: "<b>Unlocks:</b>Unlocks a new layer (Tesseracts).<br><b>Effects:</b> (Note: Finishing triangle layer then cube layer. Then I will be adding tesseracts. )",
+            effectDescription: "<b>Unlocks:</b>Unlocks a new layer (Tesseracts).<br><b>Effects:</b>Remove cube inflation upgrade, remove Line hardcap, and square roots cube requirements.",
             done() { return player[this.layer].points.gte(new Decimal(4)) },
             unlocked() {
                 return hasMilestone('d', 2)
+            }
+        },
+        4: {
+            requirementDescription: "The Fifth Dimension",
+            effectDescription: "<b>Unlocks:</b>Unlocks a new layer (Penteracts).<br><b>Effects:</b>Unknown.",
+            done() { return player[this.layer].points.gte(new Decimal(5)) },
+            unlocked() {
+                return hasMilestone('d', 3)
             }
         },
     }

@@ -25,11 +25,10 @@ addLayer("s", {
     ],
     gainMult() { // Calculate the multiplier for main currency from bonuses
         let mult = new Decimal(1)
-        if (hasMilestone('d', 2)) mult = mult.add(new Decimal(1))
+        if (hasMilestone('d', 2)) mult = mult.add(player['d'].points)
         if (hasUpgrade('s', 13)) mult = mult.times(upgradeEffect('s', 13))
         mult = mult.times(tmp['c'].effect);
-        if (hasUpgrade('s', 33)) mult = mult.times(upgradeEffect('s', 33))
-        if (hasUpgrade('s', 35)) mult = mult.times(100)
+        mult = mult.times(tmp['t'].effect);
 
         let cubefire = new Decimal(1)
 
@@ -75,8 +74,30 @@ addLayer("s", {
             }
         }
         if (hasUpgrade('l', 21)) mult = mult.times(upgradeEffect('l', 21))
-        if(hasUpgrade('s', 31)){ mult = mult.times(10) }
-        if(hasUpgrade('s', 32)){ mult = mult.times(10) }
+        
+        //remaining can be cubed upgrades
+        if(hasUpgrade('s', 31)){
+            mult = mult.times(10)
+            if(hasUpgrade('c', 14)){
+                mult = mult.times(100)
+            }
+        }
+        if(hasUpgrade('s', 32)){
+            mult = mult.times(10)
+            if(hasUpgrade('c', 14)){
+                mult = mult.times(100)
+            }
+        }
+        if(hasUpgrade('s', 35)){
+            mult = mult.times(100)
+            if(hasUpgrade('c', 14)){
+                mult = mult.times(10000)
+            }
+        }
+        if(hasUpgrade('s', 33)) {mult = mult.times(upgradeEffect('s', 33))}
+
+        //cube inflation
+        if(hasUpgrade('c', 15)) mult = mult.pow(new Decimal(3))
 
         return mult
     },
@@ -101,6 +122,7 @@ addLayer("s", {
     },
     effectDescription() {
         if(!hasMilestone('d', 2) && player['l'].points.gte(1e15)) return "which are boosting line gain by " + format(tmp[this.layer].effect) + "." + "<br><small>Your Dimensions hardcap Line amount at e15.</small>"
+        if(!hasMilestone('d', 3) && player['l'].points.gte(1e200)) return "which are boosting line gain by " + format(tmp[this.layer].effect) + "." + "<br><small>Your Dimensions hardcap Line amount at e200.</small>"
         if(hasMilestone('d', 1)) return "which are boosting line gain by " + format(tmp[this.layer].effect) + "."
         else return "which aren't boosting any production. <br><small> You might need another upgrade to progress. </small>"
     },
@@ -262,9 +284,9 @@ addLayer("s", {
         21: {
             title: "Fire Hazard",
             description() {
-                if(hasUpgrade('c', 13)) return "Multiply square gain by 12500. (Cubed)"
+                if(hasUpgrade('c', 13)) return "Multiply square gain by 21600."
                 if(!hasUpgrade('s',22)){
-                    return "Multiply square gain by 0.9. Unlocks Extinguisher."
+                    return "Decrease square gain multiplier by 0.1. Unlocks Extinguisher."
                 }else{
                     return "Multiply square gain by 6."
                 }
@@ -277,7 +299,7 @@ addLayer("s", {
         22: {
             title: "Extinguisher",
             description() {
-                if(hasUpgrade('c', 13)) return "Multiply Fire Hazard effects by -216000. (Cubed)"
+                if(hasUpgrade('c', 13)) return "Multiply Fire Hazard effects by -216000. Always Active. (Cubed)"
                 return "Multiply Fire Hazard effects by -60."
             },
             cost: new Decimal(696),
@@ -288,9 +310,9 @@ addLayer("s", {
         23: {
             title: "Fire Hazard",
             description() {
-                if(hasUpgrade('c', 13)) return "Multiply square gain by 12500. (Cubed)"
+                if(hasUpgrade('c', 13)) return "Multiply square gain by 21600."
                 if(!hasUpgrade('s',22)){
-                    return "Multiply square gain by 0.9."
+                    return "Decrease square gain multiplier by 0.1."
                 }else{
                     return "Multiply square gain by 6."
                 }
@@ -303,9 +325,9 @@ addLayer("s", {
         24: {
             title: "Fire Hazard",
             description() {
-                if(hasUpgrade('c', 13)) return "Multiply square gain by 12500. (Cubed)"
+                if(hasUpgrade('c', 13)) return "Multiply square gain by 21600."
                 if(!hasUpgrade('s',22)){
-                    return "Multiply square gain by 0.9."
+                    return "Decrease square gain multiplier is by 0.1."
                 }else{
                     return "Multiply square gain by 6."
                 }
@@ -318,9 +340,9 @@ addLayer("s", {
         25: {
             title: "Fire Hazard",
             description() {
-                if(hasUpgrade('c', 13)) return "Multiply square gain by 12500. (Cubed)"
+                if(hasUpgrade('c', 13)) return "Multiply square gain by 21600."
                 if(!hasUpgrade('s',22)){
-                    return "Multiply square gain by 0.9."
+                    return "Decrease square gain multiplier is by 0.1."
                 }else{
                     return "Multiply square gain by 6."
                 }
@@ -332,7 +354,13 @@ addLayer("s", {
         },
         31: {
             title: "Pyromania",
-            description: "Why are there so many fire hazards?? (10x square gain)",
+            description() {
+                if(!hasUpgrade('c',14)){
+                    return "Why are there so many fire hazards?? (10x square gain)"
+                }else{
+                    return "Why are there so many fire hazards?? (1000x square gain, Cubed)"
+                }
+            },
             cost: new Decimal(1e7),
             unlocked(){
                 return hasUpgrade('s', 25)
@@ -340,7 +368,13 @@ addLayer("s", {
         },
         32: {
             title: "Burning House",
-            description: "Looks like the extinguisher wasn't enough... (10x square gain)",
+            description() {
+                if(!hasUpgrade('c',14)){
+                    return "Looks like the extinguisher wasn't enough... (10x square gain)"
+                }else{
+                    return "Looks like the extinguisher wasn't enough... (1000x square gain, Cubed)"
+                }
+            },
             cost: new Decimal(1e8),
             unlocked(){
                 return hasUpgrade('s', 31)
@@ -348,19 +382,35 @@ addLayer("s", {
         },
         33: {
             title: "Back to Square One",
-            description: "Increase square gain based on points.",
+            description() {
+                if(!hasUpgrade('c',14)){
+                    return "Increase square gain based on points."
+                }else{
+                    return "Increase square gain based on points. (Cubed)"
+                }
+            },
             cost: new Decimal(1e10),
             unlocked(){
                 return hasUpgrade('s', 32)
             },
             effect() {
-                return player.points.add(1).pow(0.05)
+                if(!hasUpgrade('c',14)){
+                    return player.points.add(1).pow(0.05)
+                }else{
+                    return player.points.add(1).pow(0.15)
+                }
             },
             effectDisplay() { return format(upgradeEffect(this.layer, this.id))+"x" }, // Add formatting to the effect
         },
         34: {
             title: "Picasso's Triangles",
-            description: "Triples line gain.",
+            description() {
+                if(!hasUpgrade('c',14)){
+                    return "Triples line gain."
+                }else{
+                    return "When's the Triangle layer? (27x line gain, Cubed)"
+                }
+            },
             cost: new Decimal(5e13),
             unlocked(){
                 return hasUpgrade('s', 33)
@@ -368,7 +418,13 @@ addLayer("s", {
         },
         35: {
             title: "The Last Upgrade",
-            description: "100x square, line, and points gain.",
+            description() {
+                if(!hasUpgrade('c',14)){
+                    return "100x square, line, and points gain."
+                }else{
+                    return "1e6x square, line, and points gain. (Cubed)"
+                }
+            },
             cost: new Decimal(7e19),
             unlocked(){
                 return hasUpgrade('s', 34)

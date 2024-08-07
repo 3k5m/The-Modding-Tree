@@ -19,6 +19,10 @@ addLayer("mini1", {
         "clickables",
         "upgrades"
     ],
+    doReset(resettingLayer) {
+        if (layers[resettingLayer].row <= layers["c"].row) return;
+        layerDataReset(this.layer);
+    },
     effect(){
         let exp = new Decimal(1.4)
         if(hasUpgrade('mini1', 21)) exp = exp.add(0.15)
@@ -36,6 +40,10 @@ addLayer("mini1", {
         if(hasUpgrade(this.layer, 31)) gps = gps.times(0.5)
         if (hasUpgrade(this.layer, 33)) gps = gps.times(upgradeEffect(this.layer, 33))
         if(hasUpgrade('l', 22)) gps = gps.times(upgradeEffect('l', 22))
+        
+        //cube inflation
+        if(hasUpgrade('c', 15)) gps = gps.pow(new Decimal(3))
+        
         player[this.layer].gainPerSec = gps
         player[this.layer].points = player[this.layer].points.add(gps.times(delta))
     },

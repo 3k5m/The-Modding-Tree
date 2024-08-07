@@ -10,20 +10,43 @@ addLayer("c", {
     resetDescription: "Combine squares into ",
     requires() {
         let req = new Decimal(1000000)
-        if(player[this.layer].points.lt(1)){
-            return req
-        }else{
+        if(player[this.layer].points.gte(1)){
             req = new Decimal(1e8).pow(player[this.layer].points.add(1))
             if (hasUpgrade('mini1', 32)) req = req.pow(new Decimal(1).times(upgradeEffect('mini1', 32)))
-            return req
         }
+        if(hasMilestone('d', 3)){
+            req = req.pow(0.5)
+        }
+        req = req.pow(new Decimal(1).div(tmp['t'].effect))
+
+        if(req.lt(1000)){
+            req = new Decimal(1000)
+        }
+        return req
     }, // Can be a function that takes requirement increases into account
     resource: "cubes", // Name of prestige currency
     baseResource: "squares", // Name of resource prestige is based on
     baseAmount() {return player['s'].points}, // Get the current amount of baseResource
-    type: "static", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
-    exponent: 0.5, // Prestige currency exponent
-    base: 3,
+    type: "custom", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
+    exponent: 0, // Prestige currency exponent
+    base: 1,
+    canBuyMax() {
+        return false;
+    },
+    getResetGain() {
+        return new Decimal(1)
+    },
+    getNextAt() {
+        return this.requires()
+    },
+    canReset() {
+        return this.baseAmount().gte(this.requires())
+    },
+    prestigeButtonText() {
+        //removed the part where it put the baseresource as it is mentioned below the prestige button
+        return "Combine squares into Cubes. <br> <br> Req: "/* + format(this.baseAmount()) + "/"*/ + format(this.requires()) + " squares"
+    },
+    /*
     gainMult() { // Calculate the multiplier for main currency from bonuses
         let mult = new Decimal(1)
         //DO NOT USE THIS, USE requires() INSTEAD BECAUSE I MESSED UP FORMULA
@@ -33,7 +56,7 @@ addLayer("c", {
         let exp = new Decimal(1)
         //DO NOT USE THIS, USE requires() INSTEAD BECAUSE I MESSED UP FORMULA
         return exp
-    },
+    },*/
     row: 2, // Row the layer is in on the tree (0 is the first row)
     hotkeys: [
         {key: "c", description: "C: Reset for cubes", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
@@ -43,14 +66,12 @@ addLayer("c", {
         return new Decimal(player[this.layer].points.pow(1.2).add(1))
     },
     effectDescription() {
+        if(!hasMilestone('d', 3) && player['l'].points.gte(1e200)) return "which are boosting square gain by " + format(tmp[this.layer].effect) + "." + "<br><small>Your Dimensions hardcap Line amount at e200.</small>"
         if(hasMilestone('d', 2)){
             return "which are boosting square gain by " + format(tmp[this.layer].effect) + "."
         }else{
             return "which are boosting square gain by " + format(tmp[this.layer].effect) + ". <br><small> You might need another upgrade to progress. </small>"
         }
-    },
-    canBuyMax() {
-        return false;
     },
     milestones: {
         0: {
@@ -128,12 +149,29 @@ addLayer("c", {
         },
         13: {
             title: "Fire^3",
-            description: "Fire Hazard always positive and cube Extinguisher effects.",
+            description: "Extinguisher always active and cube its effects.",
             cost: new Decimal(5),
             unlocked(){
                 return hasUpgrade('c', 12)
             }
-        },/*
+        },
+        14: {
+            title: "Cube The Square",
+            description: "Cube all square upgrades that have not been cubed yet. (Except fire hazard upgrades)",
+            cost: new Decimal(15),
+            unlocked(){
+                return hasMilestone('c', 5)
+            }
+        },
+        15: {
+            title: "Inflation^3",
+            description: "Cube Points, Lines, Squares, and Paintings gain. <br><br><b> Inflation Upgrade </b><br>",
+            cost: new Decimal(23),
+            unlocked(){
+                return hasMilestone('c', 5)
+            }
+        }
+        /*
         14: {
             title: "Fracture",
             description: "s",
