@@ -168,7 +168,7 @@ addLayer("c", {
             description: "Cube Points, Lines, Squares, and Paintings gain. <br><br><b> Inflation Upgrade </b><br>",
             cost: new Decimal(23),
             unlocked(){
-                return hasMilestone('c', 5)
+                return hasMilestone('c', 5) && !hasMilestone('d', 3)
             }
         }
         /*
